@@ -10,10 +10,13 @@ export const list = query({
 
     // Get all users from the auth table
     const users = await ctx.db.query("users").collect();
-    
-    // Add role and status information (you might want to extend the users table schema)
+
+    // Map business fields to backward-compatible field names
     return users.map(user => ({
       ...user,
+      name: user.fullName || user.name || "Unnamed User",
+      email: user.businessEmail || user.email,
+      phone: user.phoneNumber,
       role: "employee", // Default role - you can extend this
       isActive: true,   // Default status - you can extend this
       lastLogin: user._creationTime, // Using creation time as placeholder

@@ -18,9 +18,10 @@ export function Users() {
 
   // Filter users based on search and role
   const filteredUsers = users?.filter(user => {
-    const matchesSearch = !search || 
+    const matchesSearch = !search ||
       user.name?.toLowerCase().includes(search.toLowerCase()) ||
-      user.email?.toLowerCase().includes(search.toLowerCase());
+      user.email?.toLowerCase().includes(search.toLowerCase()) ||
+      user.phone?.toLowerCase().includes(search.toLowerCase());
     const matchesRole = !roleFilter || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -31,8 +32,8 @@ export function Users() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Users & Roles</h1>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           onClick={() => setShowAddModal(true)}
           className="flex items-center gap-2"
         >
@@ -54,7 +55,7 @@ export function Users() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -68,7 +69,7 @@ export function Users() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -82,7 +83,7 @@ export function Users() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -187,24 +188,22 @@ export function Users() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.role === "admin" 
-                        ? "bg-purple-100 text-purple-800"
-                        : user.role === "manager"
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.role === "admin"
+                      ? "bg-purple-100 text-purple-800"
+                      : user.role === "manager"
                         ? "bg-blue-100 text-blue-800"
                         : user.role === "employee"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}>
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}>
                       {user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || "No Role"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.isActive 
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}>
                       {user.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>

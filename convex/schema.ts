@@ -2,6 +2,22 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
+// Extend the auth users table with custom business fields
+const customAuthTables = {
+  ...authTables,
+  users: defineTable({
+    // Standard auth fields
+    ...authTables.users.validator.fields,
+    // Custom business fields
+    businessName: v.optional(v.string()),
+    businessEmail: v.optional(v.string()),
+    fullName: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+  })
+    .index("email", ["email"])
+    .index("businessEmail", ["businessEmail"]),
+};
+
 const applicationTables = {
   // Products
   products: defineTable({
@@ -110,6 +126,6 @@ const applicationTables = {
 };
 
 export default defineSchema({
-  ...authTables,
+  ...customAuthTables,
   ...applicationTables,
 });
