@@ -3,25 +3,23 @@ import { Sidebar } from "./Sidebar";
 import { Dashboard } from "./modules/Dashboard";
 import { Products } from "./modules/Products";
 import { Sales } from "./modules/Sales";
-import { Customers } from "./modules/Customers";
-import { Suppliers } from "./modules/Suppliers";
 import { Expenses } from "./modules/Expenses";
 import { Documents } from "./modules/Documents";
 import { Reports } from "./modules/Reports";
 import { Users } from "./modules/Users";
 import { Settings } from "./modules/Settings";
 
-export type ModuleType = 
-  | "dashboard" 
-  | "products" 
-  | "sales" 
-  | "customers" 
-  | "suppliers" 
-  | "expenses" 
-  | "documents" 
-  | "reports" 
-  | "users" 
+export type ModuleType =
+  | "dashboard"
+  | "products"
+  | "sales"
+  | "expenses"
+  | "documents"
+  | "reports"
+  | "users"
   | "settings";
+
+import { Navbar } from "./Navbar";
 
 export function BusinessDashboard() {
   const [activeModule, setActiveModule] = useState<ModuleType>("dashboard");
@@ -34,10 +32,6 @@ export function BusinessDashboard() {
         return <Products />;
       case "sales":
         return <Sales />;
-      case "customers":
-        return <Customers />;
-      case "suppliers":
-        return <Suppliers />;
       case "expenses":
         return <Expenses />;
       case "documents":
@@ -57,6 +51,7 @@ export function BusinessDashboard() {
     <div className="flex h-screen bg-gray-50">
       <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
       <main className="flex-1 overflow-auto">
+        <Navbar />
         {renderModule()}
       </main>
     </div>
