@@ -95,12 +95,12 @@ export function Settings() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text">Settings</h1>
       </div>
 
       <div className="flex gap-6">
         {/* Sidebar */}
-        <div className="w-64 bg-white rounded-lg border border-gray-200 p-4">
+        <div className="w-64 bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
           <nav className="space-y-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -112,11 +112,11 @@ export function Settings() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                     isActive
-                      ? "bg-blue-50 text-blue-700 border border-blue-200"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-card/50 hover:text-gray-900 dark:hover:text-dark-text"
                   }`}
                 >
-                  <Icon size={18} className={isActive ? "text-blue-600" : "text-gray-400"} />
+                  <Icon size={18} className={isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"} />
                   <span className="font-medium">{tab.label}</span>
                 </button>
               );
@@ -125,11 +125,11 @@ export function Settings() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex-1 bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-6">
           {activeTab === "general" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">General Settings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
                     label="Business Name"
@@ -148,11 +148,11 @@ export function Settings() {
                     onChange={(e) => setGeneralSettings({ ...generalSettings, businessPhone: e.target.value })}
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">Currency</label>
                     <select
                       value={generalSettings.currency}
                       onChange={(e) => setGeneralSettings({ ...generalSettings, currency: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                     >
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
@@ -167,11 +167,11 @@ export function Settings() {
                     onChange={(e) => setGeneralSettings({ ...generalSettings, taxRate: parseFloat(e.target.value) || 0 })}
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">Timezone</label>
                     <select
                       value={generalSettings.timezone}
                       onChange={(e) => setGeneralSettings({ ...generalSettings, timezone: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                     >
                       <option value="UTC">UTC</option>
                       <option value="America/New_York">Eastern Time</option>
@@ -182,12 +182,12 @@ export function Settings() {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Business Address</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">Business Address</label>
                   <textarea
                     value={generalSettings.businessAddress}
                     onChange={(e) => setGeneralSettings({ ...generalSettings, businessAddress: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                   />
                 </div>
                 <Button onClick={handleSaveGeneral} variant="primary" className="flex items-center gap-2">
@@ -201,12 +201,12 @@ export function Settings() {
           {activeTab === "notifications" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">Notification Settings</h2>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-card/50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Email Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive notifications via email</p>
+                      <h3 className="font-medium text-gray-900 dark:text-dark-text">Email Notifications</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Receive notifications via email</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -215,14 +215,14 @@ export function Settings() {
                         onChange={(e) => setNotificationSettings({ ...notificationSettings, emailNotifications: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 dark:bg-dark-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-card/50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Low Stock Alerts</h3>
-                      <p className="text-sm text-gray-600">Get notified when products are running low</p>
+                      <h3 className="font-medium text-gray-900 dark:text-dark-text">Low Stock Alerts</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Get notified when products are running low</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -231,14 +231,14 @@ export function Settings() {
                         onChange={(e) => setNotificationSettings({ ...notificationSettings, lowStockAlerts: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 dark:bg-dark-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-card/50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Sales Notifications</h3>
-                      <p className="text-sm text-gray-600">Get notified about new sales</p>
+                      <h3 className="font-medium text-gray-900 dark:text-dark-text">Sales Notifications</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Get notified about new sales</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -247,14 +247,14 @@ export function Settings() {
                         onChange={(e) => setNotificationSettings({ ...notificationSettings, salesNotifications: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 dark:bg-dark-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-card/50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Weekly Reports</h3>
-                      <p className="text-sm text-gray-600">Receive weekly business reports</p>
+                      <h3 className="font-medium text-gray-900 dark:text-dark-text">Weekly Reports</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Receive weekly business reports</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -263,7 +263,7 @@ export function Settings() {
                         onChange={(e) => setNotificationSettings({ ...notificationSettings, weeklyReports: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 dark:bg-dark-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 </div>
@@ -278,12 +278,12 @@ export function Settings() {
           {activeTab === "security" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">Security Settings</h2>
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-card/50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Two-Factor Authentication</h3>
-                      <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                      <h3 className="font-medium text-gray-900 dark:text-dark-text">Two-Factor Authentication</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Add an extra layer of security to your account</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -292,7 +292,7 @@ export function Settings() {
                         onChange={(e) => setSecuritySettings({ ...securitySettings, twoFactorAuth: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 dark:bg-dark-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
@@ -328,33 +328,33 @@ export function Settings() {
           {activeTab === "appearance" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">Appearance Settings</h2>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Theme</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-dark-text mb-3">Theme</h3>
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="p-4 border-2 border-blue-500 rounded-lg bg-white">
-                        <div className="w-full h-20 bg-gradient-to-br from-blue-50 to-blue-100 rounded mb-2"></div>
-                        <p className="text-sm font-medium text-center">Light (Current)</p>
+                      <div className="p-4 border-2 border-blue-500 rounded-lg bg-white dark:bg-dark-card">
+                        <div className="w-full h-20 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded mb-2"></div>
+                        <p className="text-sm font-medium text-center dark:text-dark-text">Light (Current)</p>
                       </div>
-                      <div className="p-4 border-2 border-gray-200 rounded-lg bg-white opacity-50">
+                      <div className="p-4 border-2 border-gray-200 dark:border-dark-border rounded-lg bg-white dark:bg-dark-card opacity-50">
                         <div className="w-full h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded mb-2"></div>
-                        <p className="text-sm font-medium text-center">Dark (Coming Soon)</p>
+                        <p className="text-sm font-medium text-center dark:text-dark-text">Dark (Coming Soon)</p>
                       </div>
-                      <div className="p-4 border-2 border-gray-200 rounded-lg bg-white opacity-50">
+                      <div className="p-4 border-2 border-gray-200 dark:border-dark-border rounded-lg bg-white dark:bg-dark-card opacity-50">
                         <div className="w-full h-20 bg-gradient-to-br from-blue-800 to-purple-800 rounded mb-2"></div>
-                        <p className="text-sm font-medium text-center">Auto (Coming Soon)</p>
+                        <p className="text-sm font-medium text-center dark:text-dark-text">Auto (Coming Soon)</p>
                       </div>
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Color Scheme</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-dark-text mb-3">Color Scheme</h3>
                     <div className="grid grid-cols-6 gap-3">
                       {["blue", "purple", "green", "red", "orange", "pink"].map((color) => (
                         <div key={color} className="text-center">
-                          <div className={`w-12 h-12 rounded-full bg-${color}-500 mx-auto mb-2 cursor-pointer border-2 ${color === "blue" ? "border-gray-800" : "border-gray-200"}`}></div>
-                          <p className="text-xs capitalize">{color}</p>
+                          <div className={`w-12 h-12 rounded-full bg-${color}-500 mx-auto mb-2 cursor-pointer border-2 ${color === "blue" ? "border-gray-800 dark:border-dark-text" : "border-gray-200 dark:border-dark-border"}`}></div>
+                          <p className="text-xs capitalize dark:text-dark-text">{color}</p>
                         </div>
                       ))}
                     </div>
@@ -367,41 +367,41 @@ export function Settings() {
           {activeTab === "integrations" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Integrations</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">Integrations</h2>
                 <div className="space-y-4">
-                  <div className="p-4 border border-gray-200 rounded-lg">
+                  <div className="p-4 border border-gray-200 dark:border-dark-border rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Mail className="text-blue-600" size={24} />
+                        <Mail className="text-blue-600 dark:text-blue-400" size={24} />
                         <div>
-                          <h3 className="font-medium text-gray-900">Email Service</h3>
-                          <p className="text-sm text-gray-600">Connect your email service for notifications</p>
+                          <h3 className="font-medium text-gray-900 dark:text-dark-text">Email Service</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Connect your email service for notifications</p>
                         </div>
                       </div>
                       <Button variant="secondary">Configure</Button>
                     </div>
                   </div>
                   
-                  <div className="p-4 border border-gray-200 rounded-lg opacity-50">
+                  <div className="p-4 border border-gray-200 dark:border-dark-border rounded-lg opacity-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Globe className="text-green-600" size={24} />
+                        <Globe className="text-green-600 dark:text-green-400" size={24} />
                         <div>
-                          <h3 className="font-medium text-gray-900">Payment Gateway</h3>
-                          <p className="text-sm text-gray-600">Connect payment processors (Coming Soon)</p>
+                          <h3 className="font-medium text-gray-900 dark:text-dark-text">Payment Gateway</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Connect payment processors (Coming Soon)</p>
                         </div>
                       </div>
                       <Button variant="secondary" disabled>Coming Soon</Button>
                     </div>
                   </div>
                   
-                  <div className="p-4 border border-gray-200 rounded-lg opacity-50">
+                  <div className="p-4 border border-gray-200 dark:border-dark-border rounded-lg opacity-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Database className="text-purple-600" size={24} />
+                        <Database className="text-purple-600 dark:text-purple-400" size={24} />
                         <div>
-                          <h3 className="font-medium text-gray-900">Accounting Software</h3>
-                          <p className="text-sm text-gray-600">Sync with QuickBooks, Xero, etc. (Coming Soon)</p>
+                          <h3 className="font-medium text-gray-900 dark:text-dark-text">Accounting Software</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Sync with QuickBooks, Xero, etc. (Coming Soon)</p>
                         </div>
                       </div>
                       <Button variant="secondary" disabled>Coming Soon</Button>
@@ -415,20 +415,20 @@ export function Settings() {
           {activeTab === "backup" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Backup & Data Management</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">Backup & Data Management</h2>
                 <div className="space-y-6">
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h3 className="font-medium text-blue-900 mb-2">Automatic Backups</h3>
-                    <p className="text-sm text-blue-700 mb-4">Your data is automatically backed up daily to secure cloud storage.</p>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg">
+                    <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-2">Automatic Backups</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-400 mb-4">Your data is automatically backed up daily to secure cloud storage.</p>
                     <div className="flex gap-3">
                       <Button variant="secondary">Download Backup</Button>
                       <Button variant="secondary">Restore Data</Button>
                     </div>
                   </div>
                   
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Data Export</h3>
-                    <p className="text-sm text-gray-600 mb-4">Export your business data in various formats.</p>
+                  <div className="p-4 border border-gray-200 dark:border-dark-border rounded-lg">
+                    <h3 className="font-medium text-gray-900 dark:text-dark-text mb-2">Data Export</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Export your business data in various formats.</p>
                     <div className="flex gap-3">
                       <Button variant="secondary">Export as CSV</Button>
                       <Button variant="secondary">Export as JSON</Button>
@@ -436,10 +436,10 @@ export function Settings() {
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h3 className="font-medium text-red-900 mb-2">Danger Zone</h3>
-                    <p className="text-sm text-red-700 mb-4">Permanently delete all your data. This action cannot be undone.</p>
-                    <Button variant="secondary" className="text-red-600 border-red-300 hover:bg-red-50">
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+                    <h3 className="font-medium text-red-900 dark:text-red-300 mb-2">Danger Zone</h3>
+                    <p className="text-sm text-red-700 dark:text-red-400 mb-4">Permanently delete all your data. This action cannot be undone.</p>
+                    <Button variant="secondary" className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/30">
                       Delete All Data
                     </Button>
                   </div>

@@ -39,7 +39,7 @@ export function Customers() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text">Customers</h1>
         <Button 
           variant="primary" 
           onClick={() => setShowAddModal(true)}
@@ -51,12 +51,12 @@ export function Customers() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
         <div className="flex gap-4 items-center">
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
           >
             <option value="">All Customers</option>
             <option value="active">Active</option>
@@ -66,7 +66,7 @@ export function Customers() {
           <select
             value={hasBalance === undefined ? "" : hasBalance.toString()}
             onChange={(e) => setHasBalance(e.target.value === "" ? undefined : e.target.value === "true")}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
           >
             <option value="">All Balances</option>
             <option value="true">With Balance</option>
@@ -76,51 +76,51 @@ export function Customers() {
       </div>
 
       {/* Customers Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
               {customers?.map((customer, index) => (
-                <tr key={customer._id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <tr key={customer._id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Users size={16} className="text-blue-600" />
+                      <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <Users size={16} className="text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-dark-text">{customer.name}</div>
                         {customer.notes && (
-                          <div className="text-sm text-gray-500">{customer.notes}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{customer.notes}</div>
                         )}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{customer.email}</div>
-                    <div className="text-sm text-gray-500">{customer.phone}</div>
+                    <div className="text-sm text-gray-900 dark:text-dark-text">{customer.email}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{customer.phone}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className={`text-sm font-medium ${
-                      customer.balance > 0 ? "text-red-600" : "text-green-600"
+                      customer.balance > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
                     }`}>
                       ${customer.balance.toFixed(2)}
                     </div>
@@ -128,8 +128,8 @@ export function Customers() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       customer.isActive 
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
                     }`}>
                       {customer.isActive ? "Active" : "Inactive"}
                     </span>
@@ -138,7 +138,7 @@ export function Customers() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingCustomer(customer)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         <Edit size={16} />
                       </button>
@@ -231,14 +231,14 @@ function CustomerModal({ isOpen, onClose, onSubmit, customer }: any) {
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">
             Notes
           </label>
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
           />
         </div>
 
