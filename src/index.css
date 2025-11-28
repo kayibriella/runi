@@ -37,6 +37,33 @@ body {
   background: var(--color-light);
 }
 
+/* Auto-scrolling animation for horizontal cards */
+.auto-scroll-container {
+  display: flex;
+  overflow-x: hidden;
+  gap: 1rem;
+  padding: 0.5rem 0 1rem 0;
+}
+
+.auto-scroll-content {
+  display: flex;
+  gap: 1rem;
+  animation: scroll-left 30s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.auto-scroll-content:hover {
+  animation-play-state: paused;
+}
+
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
 .auth-input-field {
   @apply w-full px-4 py-3 rounded-container bg-white border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow shadow-sm hover:shadow;
