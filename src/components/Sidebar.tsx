@@ -45,7 +45,7 @@ export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {modules.map((module) => {
           const Icon = module.icon;
           const isActive = activeModule === module.id;
@@ -54,17 +54,17 @@ export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {
             <button
               key={module.id}
               onClick={() => onModuleChange(module.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 group ${isActive
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-200 group ${isActive
                 ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-card/50 hover:text-gray-900 dark:hover:text-dark-text"
                 }`}
             >
               <Icon
-                size={20}
+                size={18}
                 className={`transition-colors ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
                   }`}
               />
-              <span className="font-medium">{module.label}</span>
+              <span className="font-medium text-sm">{module.label}</span>
             </button>
           );
         })}
