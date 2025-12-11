@@ -7,7 +7,9 @@ import {
   TrendingUp,
   UserCheck,
   Settings as SettingsIcon,
-  X
+  X,
+  Banknote,
+  Truck
 } from "lucide-react";
 import { ModuleType } from "./BusinessDashboard";
 import { SignOutButton } from "../SignOutButton";
@@ -21,7 +23,9 @@ const modules = [
   { id: "dashboard" as const, label: "Dashboard", icon: BarChart3 },
   { id: "products" as const, label: "Products", icon: Package },
   { id: "sales" as const, label: "Sales", icon: ShoppingCart },
+  { id: "transactions" as const, label: "Transactions", icon: Banknote },
   { id: "expenses" as const, label: "Expenses", icon: Receipt },
+  { id: "suppliers" as const, label: "Suppliers", icon: Truck },
   { id: "documents" as const, label: "Documents", icon: FileText },
   { id: "reports" as const, label: "Reports & Analytics", icon: TrendingUp },
   { id: "users" as const, label: "Users & Roles", icon: UserCheck },

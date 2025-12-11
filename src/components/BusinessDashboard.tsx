@@ -8,6 +8,8 @@ import { Documents } from "./modules/Documents";
 import { Reports } from "./modules/Reports";
 import { Users } from "./modules/Users";
 import { Settings } from "./modules/Settings";
+import { Transactions } from "./modules/Transactions";
+import { Suppliers } from "./modules/Suppliers";
 
 export type ModuleType =
   | "dashboard"
@@ -17,10 +19,12 @@ export type ModuleType =
   | "documents"
   | "reports"
   | "users"
-  | "settings";
+  | "settings"
+  | "transactions"
+  | "suppliers";
 
 import { Navbar } from "./Navbar";
-import { BarChart3, Package, ShoppingCart, Menu } from "lucide-react";
+import { BarChart3, Package, ShoppingCart, Menu, Banknote, Truck } from "lucide-react";
 
 export function BusinessDashboard() {
   const [activeModule, setActiveModule] = useState<ModuleType>("dashboard");
@@ -44,6 +48,10 @@ export function BusinessDashboard() {
         return <Users />;
       case "settings":
         return <Settings />;
+      case "transactions":
+        return <Transactions />;
+      case "suppliers":
+        return <Suppliers />;
       default:
         return <Dashboard />;
     }
