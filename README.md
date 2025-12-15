@@ -30,25 +30,70 @@ Runi is a comprehensive business management application built with modern web te
 ## 📂 Project Structure
 
 ```
-├── convex/               # Backend code (Schema, API functions, Auth)
-│   ├── schema.ts         # Database schema definition
-│   ├── auth.ts           # Authentication logic
-│   └── ...               # Context-specific API modules (products, sales, etc.)
-├── src/                  # Frontend source code
-│   ├── components/       # Shared UI components
-│   │   ├── layout/       # App shell, Sidebar, Navbar
-│   │   └── ui/           # Reusable design system components
-│   ├── features/         # Feature-based architecture
-│   │   ├── auth/         # Authentication flows
-│   │   ├── dashboard/    # Dashboard widgets
-│   │   ├── products/     # Product management
-│   │   ├── sales/        # Sales operations
-│   │   ├── ...           # Other domain features (users, settings, etc.)
-│   ├── lib/              # Utility functions and types
-│   ├── App.tsx           # Main application component
-│   └── main.tsx          # Application entry point
-├── public/               # Static assets
-└── package.json          # Project dependencies and scripts
+├── convex/                   # Backend API & Database
+│   ├── _generated/           # Auto-generated Convex code
+│   ├── auth.config.ts        # Auth configuration
+│   ├── auth.ts               # Authentication logic & handlers
+│   ├── schema.ts             # Database schema using Convex
+│   ├── dashboard.ts          # Dashboard API endpoints
+│   ├── products.ts           # Product API endpoints
+│   ├── sales.ts              # Sales API endpoints
+│   ├── expenses.ts           # Expenses API endpoints
+│   ├── documents.ts          # Document management API
+│   ├── reports.ts            # Reporting API
+│   ├── users.ts              # User management API
+│   ├── settings.ts           # Settings API
+│   └── http.ts               # HTTP routes
+│
+├── src/                      # Frontend Application
+│   ├── components/           # Shared UI Components
+│   │   ├── layout/           # Layout Components
+│   │   │   ├── BusinessDashboard.tsx  # Main dashboard layout wrapper
+│   │   │   ├── Navbar.tsx             # Top navigation bar
+│   │   │   └── Sidebar.tsx            # Side navigation menu
+│   │   ├── ui/               # Generic UI Elements
+│   │   │   ├── Button.tsx             # Reusable button component
+│   │   │   ├── Input.tsx              # Form input component
+│   │   │   ├── Modal.tsx              # Dialog/Modal component
+│   │   │   └── StatCard.tsx           # Dashboard statistic card
+│   │   └── ThemeProvider.tsx # Theme context provider (Dark/Light mode)
+│   │
+│   ├── features/             # Feature-based Modules
+│   │   ├── auth/             # Authentication Screens
+│   │   │   ├── SignInForm.tsx
+│   │   │   ├── SignUpForm.tsx
+│   │   │   ├── ForgotPasswordForm.tsx
+│   │   │   └── SignOutButton.tsx
+│   │   ├── dashboard/        # Dashboard Feature
+│   │   │   └── Dashboard.tsx
+│   │   ├── products/         # Product Management
+│   │   │   └── Products.tsx
+│   │   ├── sales/            # Sales & Orders
+│   │   │   └── Sales.tsx
+│   │   ├── expenses/         # Expense Tracking
+│   │   │   └── Expenses.tsx
+│   │   ├── documents/        # File Management
+│   │   │   └── Documents.tsx
+│   │   ├── reports/          # Analytics & Reports
+│   │   │   └── Reports.tsx
+│   │   ├── users/            # User Administration
+│   │   │   └── Users.tsx
+│   │   ├── settings/         # App Settings
+│   │   │   └── Settings.tsx
+│   │   └── transactions/     # Transaction History
+│   │       └── Transactions.tsx
+│   │
+│   ├── lib/                  # Utilities
+│   │   └── utils.ts          # Helper functions (Tailwind merge, etc.)
+│   │
+│   ├── App.tsx               # Main App Component & Routing
+│   ├── main.tsx              # React Entry Point
+│   └── index.css             # Global Styles & Tailwind Directives
+│
+├── public/                   # Static Assets
+├── .env.local                # Environment Variables
+├── package.json              # Dependencies & Scripts
+└── tsconfig.json             # TypeScript Configuration
 ```
 
 ## ⚡ Getting Started
@@ -71,7 +116,21 @@ Runi is a comprehensive business management application built with modern web te
    npm install
    ```
 
-3. **Start the development server**
+3. **Configure Convex**
+   This project uses Convex for the backend. You need to set up your Convex project and environment variables.
+
+   Run the dev command to initialize:
+   ```bash
+   npx convex dev
+   ```
+   
+   - If this is your first time, it will prompt you to log in to Convex.
+   - You will be asked to select an existing project or create a new one.
+   - This process will automatically generate a `.env.local` file with your `CONVEX_DEPLOYMENT` and `VITE_CONVEX_URL`.
+
+   **Note:** If you are using authentication providers (like GitHub, Google, etc.), you will need to configure them in the [Convex Dashboard](https://dashboard.convex.dev/) and add any required environment variables.
+
+4. **Start the development server**
    This command runs both the frontend (Vite) and backend (Convex) concurrently.
    ```bash
    npm run dev
