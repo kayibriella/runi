@@ -226,3 +226,30 @@ export const recordStockCorrection = mutation({
     });
   },
 });
+
+// Record damaged product
+export const recordDamagedProduct = mutation({
+  args: {
+    damage_id: v.string(),
+    product_id: v.id("products"),
+    damaged_boxes: v.number(),
+    damaged_kg: v.number(),
+    damage_reason: v.string(),
+    damage_date: v.string(),
+    loss_value: v.number(),
+    damage_approval: v.string(),
+    approved_by: v.string(),
+    approved_date: v.string(),
+    reported_by: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    return await ctx.db.insert("damaged_products", {
+      ...args,
+      user_id: userId,
+      updated_at: Date.now(),
+    });
+  },
+});

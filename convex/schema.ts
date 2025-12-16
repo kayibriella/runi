@@ -88,6 +88,48 @@ const applicationTables = {
     .index("by_user", ["user_id"]),
 
 
+  // Damaged Products
+  damaged_products: defineTable({
+    damage_id: v.string(),
+    user_id: v.id("users"),
+    product_id: v.id("products"),
+    damaged_boxes: v.number(),
+    damaged_kg: v.number(),
+    damage_reason: v.string(),
+    damage_date: v.string(),
+    loss_value: v.number(),
+    damage_approval: v.string(),
+    approved_by: v.string(),
+    approved_date: v.string(),
+    reported_by: v.string(),
+    updated_at: v.number(),
+  })
+    .index("by_product", ["product_id"])
+    .index("by_user", ["user_id"]),
+
+
+  // Stock Movements
+  stock_movements: defineTable({
+    movement_id: v.string(),
+    user_id: v.id("users"),
+    product_id: v.id("products"),
+    movement_type: v.string(),
+    box_change: v.number(),
+    kg_change: v.number(),
+    old_value: v.number(),
+    new_value: v.number(),
+    damaged_id: v.optional(v.id("damaged_products")),
+    stock_addition_id: v.optional(v.id("stock_additions")),
+    correction_id: v.optional(v.id("stock_corrections")),
+    reason: v.string(),
+    status: v.string(),
+    performed: v.string(),
+    updated_at: v.number(),
+  })
+    .index("by_product", ["product_id"])
+    .index("by_user", ["user_id"]),
+
+
   // Sales
   sales: defineTable({
     customerName: v.string(),
