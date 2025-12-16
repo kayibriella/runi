@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Package, AlertTriangle, Edit } from "lucide-react";
+import { Search, Filter, Package, AlertTriangle } from "lucide-react";
 import { Input } from "../../components/ui/Input";
 
 interface LiveStockProps {
@@ -7,7 +7,6 @@ interface LiveStockProps {
     setSearch: (search: string) => void;
     products: any[];
     categories: any[];
-    onEditProduct: (product: any) => void;
 }
 
 export function LiveStock({
@@ -152,9 +151,7 @@ export function LiveStock({
                                         </th>
                                     </>
                                 )}
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Actions
-                                </th>
+
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
@@ -224,22 +221,12 @@ export function LiveStock({
                                             </>
                                         )}
 
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => onEditProduct(product)}
-                                                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                                                    title="Edit Product"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
+                                        
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex flex-col items-center gap-2">
                                             <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
                                             <p className="font-medium">No products found</p>
