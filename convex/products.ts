@@ -126,6 +126,66 @@ export const getLowStock = query({
   },
 });
 
+// Get damaged products
+export const getDamagedProducts = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const damagedProducts = await ctx.db
+      .query("damaged_products")
+      .withIndex("by_user", (q) => q.eq("user_id", userId))
+      .collect();
+
+    // Fetch product details for each damaged product
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_user", (q) => q.eq("user_id", userId))
+      .collect();
+
+    // Combine damaged products with product details
+    return damagedProducts.map(damaged => {
+      const product = products.find(p => p._id === damaged.product_id);
+      return {
+        ...damaged,
+        product_name: product ? product.name : "Unknown Product",
+        product_category_id: product ? product.category_id : null,
+      };
+    });
+  },
+});
+
+// Get stock movements
+export const getStockMovements = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const movements = await ctx.db
+      .query("stock_movements")
+      .withIndex("by_user", (q) => q.eq("user_id", userId))
+      .collect();
+
+    // Fetch product details for each movement
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_user", (q) => q.eq("user_id", userId))
+      .collect();
+
+    // Combine movements with product details
+    return movements.map(movement => {
+      const product = products.find(p => p._id === movement.product_id);
+      return {
+        ...movement,
+        product_name: product ? product.name : "Unknown Product",
+        product_category_id: product ? product.category_id : null,
+      };
+    });
+  },
+});
+
 export const deleteProduct = mutation({
   args: { id: v.id("products") },
   handler: async (ctx, args) => {

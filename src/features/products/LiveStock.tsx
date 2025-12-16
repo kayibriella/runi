@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Search, Filter, Package, AlertTriangle } from "lucide-react";
+import { Search, Filter, Package, AlertTriangle, Edit3, Trash2, Check, X } from "lucide-react";
 import { Input } from "../../components/ui/Input";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 interface LiveStockProps {
     search: string;
@@ -17,6 +19,10 @@ export function LiveStock({
 }: LiveStockProps) {
     const [currentView, setCurrentView] = useState("all");
     const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+
+    // Fetch damaged products and stock movements
+    const damagedProducts = useQuery(api.products.getDamagedProducts) || [];
+    const stockMovements = useQuery(api.products.getStockMovements) || [];
 
     // Helper to get category name
     const getCategoryName = (categoryId: string) => {
@@ -39,7 +45,7 @@ export function LiveStock({
             case "nearingExpiry":
                 return (product.days_left || 999) <= 30; // 30 days threshold
             case "damaged":
-                return false; // No damaged field in schema yet
+                return false; // We'll use damagedProducts data instead
             case "stockAdjustment":
                 return true; // Show all for now
             default:
@@ -57,6 +63,490 @@ export function LiveStock({
 
     const getCurrentViewLabel = () => {
         return views.find(v => v.id === currentView)?.label || "All Product View";
+    };
+
+    // Render All Products View
+    const renderAllProductsView = () => (
+        <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Product Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Boxes
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        KG Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Box Ratio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Selling Price per Box
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Selling Price per KG
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Cost per Box
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Cost per KG
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+                {filteredProducts?.length > 0 ? (
+                    filteredProducts.map((product: any, index: number) => (
+                        <tr key={product._id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                    {product.name}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    {getCategoryName(product.category_id)}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`text-sm font-medium ${(product.quantity_box || 0) <= (product.boxed_low_stock_threshold || 5)
+                                    ? "text-red-600 dark:text-red-400"
+                                    : "text-gray-900 dark:text-dark-text"
+                                    }`}>
+                                    {product.quantity_box || 0}
+                                </span>
+                                {(product.quantity_box || 0) <= (product.boxed_low_stock_threshold || 5) && (
+                                    <AlertTriangle size={16} className="inline ml-1 text-red-500 dark:text-red-400" />
+                                )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {product.quantity_kg || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                1:{product.box_to_kg_ratio || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                ${(product.price_per_box || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                ${(product.price_per_kg || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                ${(product.cost_per_box || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                ${(product.cost_per_kg || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                                <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
+                                    <Edit3 size={16} />
+                                </button>
+                                <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                    <Trash2 size={16} />
+                                </button>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                                <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                <p className="font-medium">No products found</p>
+                                <p className="text-sm">Try adjusting your search terms.</p>
+                            </div>
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    );
+
+    // Render Low Stock Items View
+    const renderLowStockView = () => (
+        <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Product Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Current Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Low Stock Threshold
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Box Ratio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Pricing
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+                {filteredProducts?.length > 0 ? (
+                    filteredProducts.map((product: any, index: number) => (
+                        <tr key={product._id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                    {product.name}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    {getCategoryName(product.category_id)}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    {product.quantity_box || 0} Boxes / {product.quantity_kg || 0} KG
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {product.boxed_low_stock_threshold || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                1:{product.box_to_kg_ratio || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    Box: ${(product.price_per_box || 0).toFixed(2)}
+                                </div>
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    KG: ${(product.price_per_kg || 0).toFixed(2)}
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                                <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                <p className="font-medium">No low stock products found</p>
+                                <p className="text-sm">No products are currently below their low stock threshold.</p>
+                            </div>
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    );
+
+    // Render Damaged Products View
+    const renderDamagedProductsView = () => (
+        <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Product Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Quantity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Reason
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Loss Value
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Reported By
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+                {damagedProducts?.length > 0 ? (
+                    damagedProducts.map((damaged: any, index: number) => (
+                        <tr key={damaged.damage_id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                    {damaged.product_name}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    {damaged.damaged_boxes || 0} Boxes
+                                </div>
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    {damaged.damaged_kg || 0} KG
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text max-w-xs truncate">
+                                {damaged.damage_reason}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {damaged.damage_date || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                ${(damaged.loss_value || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${damaged.damage_approval === "approved"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                    }`}>
+                                    {damaged.damage_approval === "approved" ? "Approved" : "Pending"}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {damaged.reported_by || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                    <Trash2 size={16} />
+                                </button>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                                <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                <p className="font-medium">No damaged products recorded</p>
+                                <p className="text-sm">No products have been marked as damaged yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    );
+
+    // Render Nearing Expiry View
+    const renderNearingExpiryView = () => (
+        <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Product Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Current Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Expiry Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Days Until Expiry
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Box Ratio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Pricing
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+                {filteredProducts?.length > 0 ? (
+                    filteredProducts.map((product: any, index: number) => (
+                        <tr key={product._id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                    {product.name}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    {getCategoryName(product.category_id)}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    {product.quantity_box || 0} Boxes
+                                </div>
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    {product.quantity_kg || 0} KG
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {product.expiry_date || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${(product.days_left || 999) <= 10
+                                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                    : (product.days_left || 999) <= 30
+                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                        : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                    }`}>
+                                    {product.days_left !== undefined ? `${product.days_left} days` : "-"}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                1:{product.box_to_kg_ratio || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    Box: ${(product.price_per_box || 0).toFixed(2)}
+                                </div>
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    KG: ${(product.price_per_kg || 0).toFixed(2)}
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                                <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                <p className="font-medium">No products nearing expiry</p>
+                                <p className="text-sm">No products are expiring within the next 30 days.</p>
+                            </div>
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    );
+
+    // Render Stock Adjustment / Stock Movement History View
+    const renderStockAdjustmentView = () => (
+        <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Product
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Stock Before Change
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Change or Old vs New Values
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Reason & Details
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Performed By
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+                {stockMovements?.length > 0 ? (
+                    stockMovements.map((movement: any, index: number) => (
+                        <tr key={movement.movement_id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {new Date(movement.updated_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                    {movement.product_name}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    {movement.movement_type || "-"}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {movement.old_value || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    Old: {movement.old_value || 0}
+                                </div>
+                                <div className="text-sm text-gray-900 dark:text-dark-text">
+                                    New: {movement.new_value || 0}
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text max-w-xs truncate">
+                                {movement.reason || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
+                                {movement.performed || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${movement.status === "completed"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                    }`}>
+                                    {movement.status || "-"}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                                {movement.status === "pending" && (
+                                    <>
+                                        <button className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300">
+                                            <Check size={16} />
+                                        </button>
+                                        <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                            <X size={16} />
+                                        </button>
+                                    </>
+                                )}
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                                <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                <p className="font-medium">No stock adjustments recorded</p>
+                                <p className="text-sm">No stock movements have been recorded yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    );
+
+    // Render the appropriate view based on currentView
+    const renderCurrentView = () => {
+        switch (currentView) {
+            case "all":
+                return renderAllProductsView();
+            case "lowStock":
+                return renderLowStockView();
+            case "damaged":
+                return renderDamagedProductsView();
+            case "nearingExpiry":
+                return renderNearingExpiryView();
+            case "stockAdjustment":
+                return renderStockAdjustmentView();
+            default:
+                return renderAllProductsView();
+        }
     };
 
     return (
@@ -116,131 +606,7 @@ export function LiveStock({
             {/* Products Table */}
             <div className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Product
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    SKU
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Category
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Stock (Box)
-                                </th>
-                                {currentView === "nearingExpiry" ? (
-                                    <>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Expiry Date
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Days Left
-                                        </th>
-                                    </>
-                                ) : (
-                                    <>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Cost/Box
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Price/Box
-                                        </th>
-                                    </>
-                                )}
-
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
-                            {filteredProducts?.length > 0 ? (
-                                filteredProducts.map((product: any, index: number) => (
-                                    <tr key={product._id} className={index % 2 === 0 ? "bg-white dark:bg-dark-card" : "bg-gray-50 dark:bg-dark-card/50"}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="h-10 w-10 bg-gray-200 dark:bg-dark-border rounded-lg flex items-center justify-center">
-                                                    <Package size={16} className="text-gray-500 dark:text-gray-400" />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-dark-text">{product.name}</div>
-                                                    {product.description && (
-                                                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{product.description}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
-                                            {product.sku || "-"}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
-                                                {getCategoryName(product.category_id)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-sm font-medium ${(product.quantity_box || 0) <= (product.boxed_low_stock_threshold || 5)
-                                                    ? "text-red-600 dark:text-red-400"
-                                                    : "text-gray-900 dark:text-dark-text"
-                                                    }`}>
-                                                    {product.quantity_box || 0}
-                                                </span>
-                                                {(product.quantity_box || 0) <= (product.boxed_low_stock_threshold || 5) && (
-                                                    <AlertTriangle size={16} className="text-red-500 dark:text-red-400" />
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-gray-500">{product.quantity_kg || 0} kg</div>
-                                        </td>
-
-                                        {currentView === "nearingExpiry" ? (
-                                            <>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
-                                                    {product.expiry_date || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${(product.days_left || 999) <= 10
-                                                        ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                                                        : (product.days_left || 999) <= 30
-                                                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                                                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                                                        }`}>
-                                                        {product.days_left !== undefined ? `${product.days_left} days` : "-"}
-                                                    </span>
-                                                </td>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
-                                                    ${(product.cost_per_box || 0).toFixed(2)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-text">
-                                                    ${(product.price_per_box || 0).toFixed(2)}
-                                                </td>
-                                            </>
-                                        )}
-
-                                        
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Package size={40} className="text-gray-300 dark:text-gray-600 mb-2" />
-                                            <p className="font-medium">No products found</p>
-                                            <p className="text-sm">
-                                                {currentView === "damaged" ? "No damaged products recorded." :
-                                                    currentView === "nearingExpiry" ? "No products nearing expiry (30 days)." :
-                                                        currentView === "lowStock" ? "No low stock products." :
-                                                            "Try adjusting your search terms."}
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                    {renderCurrentView()}
                 </div>
             </div>
         </div>
