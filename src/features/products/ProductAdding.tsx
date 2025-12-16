@@ -16,8 +16,8 @@ export function ProductAdding({}: ProductAddingProps) {
   const [isStockCorrectionOpen, setIsStockCorrectionOpen] = useState(false);
   
   // Fetch real data from Convex
-  const categories = useQuery(api.productCategories.list) || [];
-  const products = useQuery(api.products.list) || [];
+  const categories = useQuery(api.productCategories.list, {}) || [];
+  const products = useQuery(api.products.list, {}) || [];
   
   // Mutations
   const createProduct = useMutation(api.products.create);
@@ -268,7 +268,7 @@ export function ProductAdding({}: ProductAddingProps) {
         
         await createProduct({
           name: addProductForm.name,
-          category_id: addProductForm.category_id,
+          category_id: addProductForm.category_id as any,
           quantity_box: quantityBox,
           quantity_kg: quantityKg,
           box_to_kg_ratio: boxToKgRatio,
@@ -313,7 +313,7 @@ export function ProductAdding({}: ProductAddingProps) {
         const kgAmount = Number(restockForm.kg_amount);
         
         await restockProduct({
-          id: restockForm.product_id,
+          id: restockForm.product_id as any,
           boxes_amount: boxesAmount,
           kg_amount: kgAmount,
           delivery_date: restockForm.delivery_date,
@@ -354,7 +354,7 @@ export function ProductAdding({}: ProductAddingProps) {
         
         await recordDamagedProduct({
           damage_id: `damage_${Date.now()}`,
-          product_id: recordDamagedForm.product_id,
+          product_id: recordDamagedForm.product_id as any,
           damaged_boxes: boxesAmount,
           damaged_kg: kgAmount,
           damage_reason: recordDamagedForm.reason,
@@ -391,7 +391,7 @@ export function ProductAdding({}: ProductAddingProps) {
         
         await recordStockCorrection({
           correction_id: `correction_${Date.now()}`,
-          product_id: stockCorrectionForm.product_id,
+          product_id: stockCorrectionForm.product_id as any,
           box_adjustment: boxesAmount,
           kg_adjustment: kgAmount,
           status: "completed",
