@@ -9,6 +9,7 @@ export function ExpenseCreator() {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState("pending");
+  const [receiptUrl, setReceiptUrl] = useState("");
   const [error, setError] = useState("");
 
   const categories = useQuery(api.expenseCategories.list);
@@ -25,6 +26,7 @@ export function ExpenseCreator() {
         amount: parseFloat(amount),
         date: new Date(date).getTime(),
         status,
+        receiptUrl: receiptUrl || undefined,
       });
 
       // Reset form
@@ -33,6 +35,7 @@ export function ExpenseCreator() {
       setAmount("");
       setDate(new Date().toISOString().split('T')[0]);
       setStatus("pending");
+      setReceiptUrl("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
@@ -134,6 +137,20 @@ export function ExpenseCreator() {
             <option value="pending">Pending</option>
             <option value="paid">Paid</option>
           </select>
+        </div>
+        
+        <div>
+          <label htmlFor="receiptUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Receipt URL (Optional)
+          </label>
+          <input
+            type="url"
+            id="receiptUrl"
+            value={receiptUrl}
+            onChange={(e) => setReceiptUrl(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-bg dark:text-dark-text"
+            placeholder="https://example.com/receipt.pdf"
+          />
         </div>
         
         <div className="flex justify-end">

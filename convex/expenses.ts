@@ -50,6 +50,7 @@ export const create = mutation({
     date: v.number(),
     addedBy: v.optional(v.string()),
     status: v.string(),
+    receiptUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -64,6 +65,7 @@ export const create = mutation({
       date: args.date,
       addedBy: args.addedBy || "System",
       status: args.status,
+      receiptUrl: args.receiptUrl,
       updatedAt: now,
     });
 
@@ -138,6 +140,7 @@ export const update = mutation({
     date: v.optional(v.number()),
     addedBy: v.optional(v.string()),
     status: v.optional(v.string()),
+    receiptUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -156,6 +159,7 @@ export const update = mutation({
     if (args.date !== undefined) updates.date = args.date;
     if (args.addedBy !== undefined) updates.addedBy = args.addedBy;
     if (args.status !== undefined) updates.status = args.status;
+    if (args.receiptUrl !== undefined) updates.receiptUrl = args.receiptUrl;
 
     await ctx.db.patch(args.id, updates);
     return args.id;

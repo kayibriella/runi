@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { format } from "date-fns";
+import { Edit, Trash2 } from "lucide-react";
 
 export function ExpenseList() {
   const [startDate, setStartDate] = useState("");
@@ -13,6 +14,7 @@ export function ExpenseList() {
   });
   
   const categories = useQuery(api.expenseCategories.list);
+  const deleteExpense = useMutation(api.expenses.remove);
 
   const formatDate = (timestamp: number) => {
     return format(new Date(timestamp), "MMM dd, yyyy");
@@ -23,6 +25,17 @@ export function ExpenseList() {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this expense?")) {
+      try {
+        await deleteExpense({ id });
+      } catch (error) {
+        console.error("Failed to delete expense:", error);
+        alert("Failed to delete expense");
+      }
+    }
   };
 
   if (!expenses || !categories) {
@@ -99,7 +112,7 @@ export function ExpenseList() {
               <thead className="bg-gray-50 dark:bg-dark-bg">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Title
+                    Expense Title
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Category
@@ -111,10 +124,13 @@ export function ExpenseList() {
                     Date
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Added By
+                    Receipt
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -136,18 +152,36 @@ export function ExpenseList() {
                         {formatDate(expense.date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {expense.addedBy}
+                        {expense.receiptUrl ? (
+                          <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                            View Receipt
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">No receipt</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          expense.status === "approved" 
+                          expense.status === "paid" 
                             ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
-                            : expense.status === "rejected" 
-                              ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" 
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
                         }`}>
                           {expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex space-x-2">
+                        <button
+                          onClick={() => console.log("Edit expense", expense._id)}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(expense._id)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
                   );

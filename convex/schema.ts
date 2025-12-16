@@ -168,6 +168,7 @@ const applicationTables = {
     date: v.number(),
     addedBy: v.string(),
     status: v.string(),
+    receiptUrl: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
