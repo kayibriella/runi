@@ -100,8 +100,8 @@ export const getStats = query({
     // Get all products
     const products = await ctx.db.query("products").collect();
     
-    // Get low stock products (stock <= minStock)
-    const lowStockProducts = products.filter(p => p.stock <= p.minStock && p.isActive);
+    // Get low stock products (quantity_box <= boxed_low_stock_threshold)
+    const lowStockProducts = products.filter(p => p.quantity_box <= p.boxed_low_stock_threshold);
     
     // Calculate totals
     const totalSales = sales.length;
@@ -120,9 +120,13 @@ export const getStats = query({
     const actualProfit = totalRevenue - totalCostOfGoods - totalExpenses;
     
     // Calculate products in stock metrics
-    const totalProductsInStock = products.filter(p => p.isActive).length;
-    const productTypes = [...new Set(products.filter(p => p.isActive).map(p => p.category))].length;
-    const fishTypes = products.filter(p => p.isActive && p.category.toLowerCase().includes('fish')).length;
+    const totalProductsInStock = products.length;
+    // For product types and fish types, we need to join with categories
+    const categories = await ctx.db.query("productcategory").collect();
+    const categoryMap = new Map(categories.map(cat => [cat._id, cat.category_name]));
+    
+    const productTypes = [...new Set(products.map(p => categoryMap.get(p.category_id)))].filter(Boolean).length;
+    const fishTypes = categories.filter(cat => cat.category_name.toLowerCase().includes('fish')).length;
     
     // Calculate damaged items (we'll simulate this as we don't have a specific field for it)
     // For demonstration, we'll assume 5% of low stock items are damaged

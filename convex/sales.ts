@@ -47,12 +47,16 @@ export const create = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
-    // Update product stock
+    // Update product quantities
     for (const item of args.items) {
       const product = await ctx.db.get(item.productId);
       if (product) {
+        // Reduce both box and kg quantities proportionally
+        // This is a simplification - in a real app you might track which unit was sold
+        const reductionRatio = item.quantity / (product.quantity_box + product.quantity_kg * product.box_to_kg_ratio);
         await ctx.db.patch(item.productId, {
-          stock: Math.max(0, product.stock - item.quantity)
+          quantity_box: Math.max(0, product.quantity_box - (product.quantity_box * reductionRatio)),
+          quantity_kg: Math.max(0, product.quantity_kg - (product.quantity_kg * reductionRatio))
         });
       }
     }
