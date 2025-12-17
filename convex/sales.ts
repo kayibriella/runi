@@ -109,6 +109,46 @@ export const deleteSale = mutation({
   },
 });
 
+export const listAudit = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const audits = await ctx.db
+      .query("sales_audit")
+      .withIndex("by_user", (q) => q.eq("user_id", userId))
+      .order("desc")
+      .collect();
+
+    return audits;
+  },
+});
+
+export const updateAuditStatus = mutation({
+  args: {
+    auditId: v.id("sales_audit"),
+    status: v.union(v.literal("approved"), v.literal("rejected")),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const audit = await ctx.db.get(args.auditId);
+    if (!audit || audit.user_id !== userId) {
+      throw new Error("Audit record not found or access denied");
+    }
+
+    return await ctx.db.patch(args.auditId, {
+      approval_status: args.status,
+      approved_by: userId,
+      approved_timestamp: Date.now(),
+      ...(args.reason && { reason: args.reason }),
+    });
+  },
+});
+
 export const getStats = query({
   args: {
     period: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
