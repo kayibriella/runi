@@ -206,6 +206,7 @@ const applicationTables = {
     file_name: v.string(),
     file_url: v.string(),
     file_type: v.string(),
+    storage_id: v.id("_storage"),
     folder_id: v.optional(v.id("folders")),
     file_size: v.number(),
     updated_at: v.number(),

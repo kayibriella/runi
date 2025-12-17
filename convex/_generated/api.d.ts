@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as dashboard from "../dashboard.js";
 import type * as expenseCategories from "../expenseCategories.js";
 import type * as expenses from "../expenses.js";
+import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
 import type * as productCategories from "../productCategories.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   expenseCategories: typeof expenseCategories;
   expenses: typeof expenses;
+  files: typeof files;
   folders: typeof folders;
   http: typeof http;
   productCategories: typeof productCategories;
