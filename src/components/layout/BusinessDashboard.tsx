@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Dashboard } from "../../features/dashboard/Dashboard";
 import { Products } from "../../features/products/Products";
@@ -9,6 +9,7 @@ import { Reports } from "../../features/reports/Reports";
 import { Users } from "../../features/users/Users";
 import { Settings } from "../../features/settings/Settings";
 import { Transactions } from "../../features/transactions/Transactions";
+import { useNavigate, useParams } from "react-router-dom";
 
 export type ModuleType =
   | "dashboard"
@@ -27,6 +28,35 @@ import { BarChart3, Package, Menu, Receipt, FileText } from "lucide-react";
 export function BusinessDashboard() {
   const [activeModule, setActiveModule] = useState<ModuleType>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const { module } = useParams<{ module: string }>();
+
+  // Set active module based on URL parameter
+  useEffect(() => {
+    if (module && isValidModule(module)) {
+      setActiveModule(module as ModuleType);
+    } else {
+      // Default to dashboard if no valid module is specified
+      setActiveModule("dashboard");
+      navigate("/dashboard", { replace: true });
+    }
+  }, [module, navigate]);
+
+  // Validate if the module is a valid ModuleType
+  const isValidModule = (module: string): module is ModuleType => {
+    const validModules: ModuleType[] = [
+      "dashboard",
+      "products",
+      "sales",
+      "expenses",
+      "documents",
+      "reports",
+      "users",
+      "settings",
+      "transactions"
+    ];
+    return validModules.includes(module as ModuleType);
+  };
 
   const renderModule = () => {
     switch (activeModule) {
@@ -67,6 +97,7 @@ export function BusinessDashboard() {
       <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block md:static fixed inset-y-0 left-0 z-30`}>
         <Sidebar activeModule={activeModule} onModuleChange={(module) => {
           setActiveModule(module);
+          navigate(`/${module}`);
           // Close sidebar on mobile after selection
           if (window.innerWidth < 768) setSidebarOpen(false);
         }} />
@@ -97,7 +128,10 @@ export function BusinessDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveModule(item.id as ModuleType)}
+                  onClick={() => {
+                    setActiveModule(item.id as ModuleType);
+                    navigate(`/${item.id}`);
+                  }}
                   className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg ${isActive
                     ? "text-blue-600 dark:text-blue-400"
                     : "text-gray-500 dark:text-gray-400"

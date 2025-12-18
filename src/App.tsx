@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { BusinessDashboard } from "./components/layout/BusinessDashboard";
 import { useState } from "react";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { Routes, Route } from "react-router-dom";
 
 export default function App() {
   const [authView, setAuthView] = useState<'signIn' | 'signUp' | 'forgotPassword'>('signIn');
@@ -29,7 +30,10 @@ export default function App() {
     <ThemeProvider>
       <div className="min-h-screen bg-gray-50 dark:bg-dark-bg dark:text-dark-text">
         <Authenticated>
-          <BusinessDashboard />
+          <Routes>
+            <Route path="/" element={<BusinessDashboard />} />
+            <Route path="/:module" element={<BusinessDashboard />} />
+          </Routes>
         </Authenticated>
 
         <Unauthenticated>
