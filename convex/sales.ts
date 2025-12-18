@@ -149,6 +149,78 @@ export const updateAuditStatus = mutation({
   },
 });
 
+export const updateSale = mutation({
+  args: {
+    saleId: v.id("sales"),
+    boxes_quantity: v.optional(v.number()),
+    kg_quantity: v.optional(v.number()),
+    payment_method: v.optional(v.string()),
+    reason: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const sale = await ctx.db.get(args.saleId);
+    if (!sale || sale.user_id !== userId) {
+      throw new Error("Sale not found or access denied");
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      updated_at: Date.now(),
+    };
+
+    // Only update provided fields
+    if (args.boxes_quantity !== undefined) {
+      updateData.boxes_quantity = args.boxes_quantity;
+    }
+    if (args.kg_quantity !== undefined) {
+      updateData.kg_quantity = args.kg_quantity;
+    }
+    if (args.payment_method !== undefined) {
+      updateData.payment_method = args.payment_method;
+    }
+
+    // Update the sale
+    await ctx.db.patch(args.saleId, updateData);
+
+    // Create audit record
+    const auditRecord = {
+      audit_id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user_id: userId,
+      sales_id: args.saleId,
+      audit_type: "edit",
+      boxes_change: {
+        before: sale.boxes_quantity,
+        after: args.boxes_quantity !== undefined ? args.boxes_quantity : sale.boxes_quantity,
+      },
+      kg_change: {
+        before: sale.kg_quantity,
+        after: args.kg_quantity !== undefined ? args.kg_quantity : sale.kg_quantity,
+      },
+      old_values: {
+        boxes_quantity: sale.boxes_quantity,
+        kg_quantity: sale.kg_quantity,
+        payment_method: sale.payment_method,
+      },
+      new_values: {
+        boxes_quantity: args.boxes_quantity !== undefined ? args.boxes_quantity : sale.boxes_quantity,
+        kg_quantity: args.kg_quantity !== undefined ? args.kg_quantity : sale.kg_quantity,
+        payment_method: args.payment_method !== undefined ? args.payment_method : sale.payment_method,
+      },
+      performed_by: userId,
+      approval_status: "pending" as const,
+      reason: args.reason,
+      updated_at: Date.now(),
+    };
+
+    await ctx.db.insert("sales_audit", auditRecord);
+
+    return args.saleId;
+  },
+});
+
 export const getStats = query({
   args: {
     period: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
