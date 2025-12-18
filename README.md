@@ -4,7 +4,7 @@ Runi is a comprehensive business management application built with modern web te
 
 ## 🚀 Features
 
-- **Dashboard**: Real-time overview of business performance and metrics.
+- **Home**: Real-time overview of business performance and metrics.
 - **Products**: Comprehensive inventory management (add, edit, delete with approval workflow, tracking).
   - Two-phase product editing and deletion approval workflow to prevent accidental data loss
   - Detailed stock movement tracking and auditing
@@ -240,7 +240,7 @@ The application now features a complete client-side routing system that enables 
 1. **BrowserRouter Integration**: The main application is wrapped with React Router's BrowserRouter in `main.tsx`
 2. **Route Configuration**: Dynamic routes are configured in `App.tsx` to handle module parameters
 3. **Parameter-Based Navigation**: The `BusinessDashboard.tsx` component uses `useParams` to read URL parameters and `useNavigate` for programmatic navigation
-4. **Validation & Fallback**: Invalid module URLs are automatically redirected to the dashboard
+4. **Validation & Fallback**: Invalid module URLs are automatically redirected to the home page
 5. **State Synchronization**: URL changes are synchronized with application state for consistent UI
 
 This implementation ensures users can bookmark, share, and directly access any module while maintaining the existing application functionality.

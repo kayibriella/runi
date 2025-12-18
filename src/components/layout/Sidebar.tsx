@@ -19,15 +19,15 @@ interface SidebarProps {
 }
 
 const modules = [
-  { id: "dashboard" as const, label: "Dashboard", icon: BarChart3 },
+  { id: "dashboard" as const, label: "Home", icon: BarChart3 },
   { id: "products" as const, label: "Products", icon: Package },
   { id: "sales" as const, label: "Sales", icon: ShoppingCart },
   { id: "transactions" as const, label: "Transactions", icon: Banknote },
   { id: "expenses" as const, label: "Expenses", icon: Receipt },
   { id: "documents" as const, label: "Documents", icon: FileText },
-  { id: "reports" as const, label: "Reports & Analytics", icon: TrendingUp },
-  { id: "users" as const, label: "Users & Roles", icon: UserCheck },
-  { id: "settings" as const, label: "Account Settings", icon: SettingsIcon },
+  { id: "reports" as const, label: "Reports", icon: TrendingUp },
+  { id: "users" as const, label: "Users", icon: UserCheck },
+  { id: "settings" as const, label: "Settings", icon: SettingsIcon },
 ];
 
 export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {
