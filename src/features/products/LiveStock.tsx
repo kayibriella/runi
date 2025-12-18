@@ -30,6 +30,9 @@ export function LiveStock({
         price_per_box: "",
         reason: ""
     });
+    const [isDeleteProductOpen, setIsDeleteProductOpen] = useState(false);
+    const [deletingProduct, setDeletingProduct] = useState<any>(null);
+    const [deleteReason, setDeleteReason] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Fetch damaged products, stock movements, and restock records
@@ -37,6 +40,8 @@ export function LiveStock({
     const stockMovements = useQuery(api.products.getStockMovements) || [];
     const restockRecords = useQuery(api.products.getRestockRecords) || [];
     const updateProduct = useMutation(api.products.update);
+    const deleteProduct = useMutation(api.products.deleteProduct);
+    const recordStockMovement = useMutation(api.products.recordStockMovement);
 
     // Helper to get category name
     const getCategoryName = (categoryId: string) => {
@@ -170,7 +175,10 @@ export function LiveStock({
                                 >
                                     <Edit3 size={16} />
                                 </button>
-                                <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                <button 
+                                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                    onClick={() => handleDeleteClick(product)}
+                                >
                                     <Trash2 size={16} />
                                 </button>
                             </td>
@@ -729,6 +737,83 @@ export function LiveStock({
         setErrors({});
     };
 
+    // Open delete product modal
+    const openDeleteModal = (product: any) => {
+        setDeletingProduct(product);
+        setDeleteReason("");
+        setIsDeleteProductOpen(true);
+        setErrors({});
+    };
+
+    // Close delete product modal
+    const closeDeleteModal = () => {
+        setIsDeleteProductOpen(false);
+        setDeletingProduct(null);
+        setDeleteReason("");
+        setErrors({});
+    };
+
+    // Handle delete reason change
+    const handleDeleteReasonChange = (value: string) => {
+        setDeleteReason(value);
+        
+        // Clear error when user types
+        if (errors.reason) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.reason;
+                return newErrors;
+            });
+        }
+    };
+
+    // Validate delete product form
+    const validateDeleteProductForm = () => {
+        const newErrors: Record<string, string> = {};
+        
+        if (!deleteReason.trim()) {
+            newErrors.reason = "Reason for deletion is required";
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // Handle delete product submit
+    const handleDeleteProductSubmit = async () => {
+        if (validateDeleteProductForm()) {
+            try {
+                // Record the stock movement before deleting
+                await recordStockMovement({
+                    movement_id: `movement_${Date.now()}`,
+                    product_id: deletingProduct._id,
+                    movement_type: "product_deletion",
+                    box_change: -deletingProduct.quantity_box,
+                    kg_change: -deletingProduct.quantity_kg,
+                    old_value: deletingProduct.quantity_box,
+                    new_value: 0,
+                    reason: deleteReason,
+                    status: "completed",
+                    performed: "User", // In a real app, this would be the actual user
+                });
+
+                // Delete the product
+                await deleteProduct({ id: deletingProduct._id });
+                
+                alert("Product deleted successfully!");
+                closeDeleteModal();
+            } catch (error: any) {
+                console.error("Error deleting product:", error);
+                alert("Failed to delete product: " + (error.message || "Unknown error"));
+            }
+        }
+    };
+
+    // Handle immediate delete (without reason)
+    const handleDeleteClick = (product: any) => {
+        openDeleteModal(product);
+    };
+
     // Validate edit product form
     const validateEditProductForm = () => {
         const newErrors: Record<string, string> = {};
@@ -783,7 +868,18 @@ export function LiveStock({
                 });
                 
                 // Record stock movement for the change
-                // In a real implementation, you would call a mutation to record this
+                await recordStockMovement({
+                    movement_id: `movement_${Date.now()}`,
+                    product_id: editingProduct._id,
+                    movement_type: "product_update",
+                    box_change: 0, // No change in quantity
+                    kg_change: 0, // No change in quantity
+                    old_value: editingProduct.quantity_box,
+                    new_value: editingProduct.quantity_box,
+                    reason: editForm.reason,
+                    status: "completed",
+                    performed: "User", // In a real app, this would be the actual user
+                });
                 
                 alert("Product updated successfully!");
                 closeEditModal();
@@ -1022,6 +1118,84 @@ export function LiveStock({
                                 onClick={handleEditProductSubmit}
                             >
                                 Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Request Product Deletion Modal */}
+            <Modal 
+                isOpen={isDeleteProductOpen} 
+                onClose={closeDeleteModal} 
+                title="Request Product Deletion"
+            >
+                <div className="bg-white dark:bg-dark-card rounded-lg shadow-lg overflow-hidden">
+                    <div className="p-4 space-y-5 max-h-[70vh] overflow-y-auto">
+                        {/* Header */}
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-dark-text">Request Product Deletion</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                Please provide a reason for deleting this product
+                            </p>
+                        </div>
+                        
+                        {/* Delete Product Form */}
+                        <div className="space-y-4">
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-dark-text mb-1">
+                                        Product Name
+                                    </label>
+                                    <div className="px-2.5 py-1.5 text-sm bg-gray-100 dark:bg-dark-bg rounded-md text-gray-900 dark:text-dark-text">
+                                        {deletingProduct?.name}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-dark-text mb-1">
+                                        Current Stock
+                                    </label>
+                                    <div className="px-2.5 py-1.5 text-sm bg-gray-100 dark:bg-dark-bg rounded-md text-gray-900 dark:text-dark-text">
+                                        {deletingProduct?.quantity_box} boxes, {deletingProduct?.quantity_kg} kg
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-dark-text mb-1">
+                                        Reason for Deletion <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={deleteReason}
+                                        onChange={(e) => handleDeleteReasonChange(e.target.value)}
+                                        className={`w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-bg dark:text-dark-text transition-colors ${
+                                            errors.reason ? "border-red-300 focus:ring-red-500 focus:border-red-500" : ""
+                                        }`}
+                                        rows={4}
+                                        placeholder="Enter reason for deletion (e.g., Discontinued product, Damaged beyond repair, etc.)"
+                                    />
+                                    {errors.reason && (
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.reason}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button 
+                                variant="secondary" 
+                                size="sm"
+                                onClick={closeDeleteModal}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={handleDeleteProductSubmit}
+                            >
+                                Delete Product
                             </Button>
                         </div>
                     </div>
