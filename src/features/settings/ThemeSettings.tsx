@@ -1,13 +1,12 @@
 import { useTheme } from "../../components/ThemeProvider";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
 export function ThemeSettings() {
   const { theme, setTheme } = useTheme();
 
   const themes = [
-    { id: "light", name: "Light", icon: Sun },
-    { id: "dark", name: "Dark", icon: Moon },
-    { id: "system", name: "System", icon: Monitor },
+    { id: "light" as const, name: "Light", icon: Sun },
+    { id: "dark" as const, name: "Dark", icon: Moon },
   ];
 
   return (
