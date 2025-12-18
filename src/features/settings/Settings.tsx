@@ -1,67 +1,23 @@
-import { useState } from "react";
 import { UserProfile } from "./UserProfile";
 import { ThemeSettings } from "./ThemeSettings";
 import { AccountDetails } from "./AccountDetails";
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState("profile");
-  
-  const tabs = [
-    { id: "profile", label: "Profile" },
-    { id: "theme", label: "Theme" },
-    { id: "account", label: "Account" },
-  ];
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text">Account Settings</h1>
       </div>
       
-      {/* Sub-Tabs Navigation */}
-      <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border overflow-hidden">
-        <div className="flex border-b border-gray-200 dark:border-dark-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-4 text-sm font-medium relative transition-all duration-300 ease-in-out ${activeTab === tab.id
-                ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-card/50"
-                }`}
-              style={{
-                borderTopLeftRadius: tab.id === tabs[0].id ? '0.75rem' : '0',
-                borderTopRightRadius: tab.id === tabs[tabs.length - 1].id ? '0.75rem' : '0'
-              }}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-300" />
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="space-y-6">
+        {/* Profile Section */}
+        <UserProfile />
         
-        {/* Tab Content */}
-        <div className="p-6">
-          {activeTab === "profile" && (
-            <div className="space-y-6">
-              <UserProfile />
-            </div>
-          )}
-          
-          {activeTab === "theme" && (
-            <div className="space-y-6">
-              <ThemeSettings />
-            </div>
-          )}
-          
-          {activeTab === "account" && (
-            <div className="space-y-6">
-              <AccountDetails />
-            </div>
-          )}
-        </div>
+        {/* Theme Settings Section */}
+        <ThemeSettings />
+        
+        {/* Account Details Section */}
+        <AccountDetails />
       </div>
     </div>
   );
