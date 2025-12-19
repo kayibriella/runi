@@ -1,18 +1,100 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Modal } from "../../components/ui/Modal";
 
 export function Deposited() {
-  const transactions = useQuery(api.transactions.listByPaymentStatus, { payment_status: "completed" });
+  const deposits = useQuery(api.deposit.list);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  
+  // Deposit form state
+  const [amount, setAmount] = useState("");
+  const [depositType, setDepositType] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  
+  // Mutations
+  const createDeposit = useMutation(api.deposit.create);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const createFileRecord = useMutation(api.files.create);
+  
+  // Handle form submission
+  const handleSaveDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Upload receipt file if provided
+      let receiptImageUrl = "";
+      if (receiptFile) {
+        // Generate upload URL
+        const uploadUrl = await generateUploadUrl();
+        
+        // Upload file
+        const formData = new FormData();
+        formData.append("file", receiptFile);
+        
+        const response = await fetch(uploadUrl, {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to upload file");
+        }
+        
+        const { storageId } = await response.json();
+        
+        // Create file record
+        await createFileRecord({
+          storageId,
+          fileName: receiptFile.name,
+          fileType: receiptFile.type,
+          fileSize: receiptFile.size,
+        });
+        
+        // Get file URL
+        receiptImageUrl = `https://cdn.convex.cloud/${storageId}`;
+      }
+      
+      // Create deposit record
+      await createDeposit({
+        deposit_id: `dep_${Date.now()}`, // This should be replaced with actual user ID
+        user_id: "user_123", // This should be replaced with actual user ID
+        deposit_type: depositType,
+        account_name: accountName,
+        account_number: accountNumber,
+        amount: parseFloat(amount),
+        to_recipient: accountName,
+        deposit_image_url: receiptImageUrl,
+        approval: "pending",
+        created_by: "user_123", // This should be replaced with actual user ID
+        updated_at: Date.now(),
+        updated_by: "user_123", // This should be replaced with actual user ID
+      });
+      
+      // Reset form and close modal
+      setAmount("");
+      setDepositType("");
+      setAccountName("");
+      setAccountNumber("");
+      setReceiptFile(null);
+      setShowModal(false);
+      
+      // Show success message
+      alert("Deposit saved successfully!");
+    } catch (error) {
+      console.error("Error saving deposit:", error);
+      alert("Failed to save deposit. Please try again.");
+    }
+  };
 
   useEffect(() => {
-    if (transactions !== undefined) {
+    if (deposits !== undefined) {
       setIsLoading(false);
     }
-  }, [transactions]);
+  }, [deposits]);
 
   if (isLoading) {
     return (
@@ -35,7 +117,7 @@ export function Deposited() {
     );
   }
 
-  if (transactions === undefined || transactions.length === 0) {
+  if (deposits === undefined || deposits.length === 0) {
     return (
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
@@ -82,20 +164,26 @@ export function Deposited() {
           onClose={() => setShowModal(false)}
           title="Add New Deposit"
         >
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSaveDeposit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
               <input
                 type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                 placeholder="Enter amount"
+                required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
               <select
+                value={depositType}
+                onChange={(e) => setDepositType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
+                required
               >
                 <option value="">Select type</option>
                 <option value="bank">Bank</option>
@@ -108,8 +196,11 @@ export function Deposited() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
               <input
                 type="text"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                 placeholder="Enter account name"
+                required
               />
             </div>
 
@@ -117,8 +208,11 @@ export function Deposited() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Number</label>
               <input
                 type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
                 placeholder="Enter account number"
+                required
               />
             </div>
 
@@ -132,7 +226,12 @@ export function Deposited() {
                   <div className="flex text-sm text-gray-600 dark:text-gray-400">
                     <label className="relative cursor-pointer bg-white dark:bg-dark-card rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                       <span>Upload an image</span>
-                      <input type="file" className="sr-only" accept="image/*" />
+                      <input 
+                        type="file" 
+                        className="sr-only" 
+                        accept="image/*" 
+                        onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                      />
                     </label>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
@@ -193,24 +292,28 @@ export function Deposited() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
-              {transactions.map((transaction) => (
-                <tr key={transaction.transaction_id}>
+              {deposits && deposits.map((deposit) => (
+                <tr key={deposit.deposit_id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(transaction.updated_at).toLocaleString()}
+                    {new Date(deposit.updated_at).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${transaction.total_amount.toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{transaction.payment_method}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Bank Account</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-dark-text">{transaction.transaction_id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${deposit.amount.toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{deposit.deposit_type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{deposit.account_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-dark-text">{deposit.deposit_id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                      Approved
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                      {deposit.approval}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium">
-                      View
-                    </button>
+                    {deposit.deposit_image_url ? (
+                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium">
+                        View
+                      </button>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400">No receipt</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex space-x-2">
@@ -235,20 +338,26 @@ export function Deposited() {
         onClose={() => setShowModal(false)}
         title="Add New Deposit"
       >
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSaveDeposit}>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
             <input
               type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
               placeholder="Enter amount"
+              required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
             <select
+              value={depositType}
+              onChange={(e) => setDepositType(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
+              required
             >
               <option value="">Select type</option>
               <option value="bank">Bank</option>
@@ -261,8 +370,11 @@ export function Deposited() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
             <input
               type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
               placeholder="Enter account name"
+              required
             />
           </div>
 
@@ -270,8 +382,11 @@ export function Deposited() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Number</label>
             <input
               type="text"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text"
               placeholder="Enter account number"
+              required
             />
           </div>
 
@@ -285,7 +400,12 @@ export function Deposited() {
                 <div className="flex text-sm text-gray-600 dark:text-gray-400">
                   <label className="relative cursor-pointer bg-white dark:bg-dark-card rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                     <span>Upload an image</span>
-                    <input type="file" className="sr-only" accept="image/*" />
+                    <input 
+                      type="file" 
+                      className="sr-only" 
+                      accept="image/*" 
+                      onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                    />
                   </label>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-500">
