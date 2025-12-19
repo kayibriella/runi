@@ -118,44 +118,49 @@ export function BusinessDashboard() {
           {renderModule()}
         </div>
 
-        {/* Bottom Navigation for mobile */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-card border-t border-gray-200 dark:border-dark-border z-10">
-          <div className="flex justify-around items-center py-2">
-            {bottomNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeModule === item.id;
+          {/* Bottom Navigation for mobile */}
+          <div className="md:hidden fixed bottom-6 left-4 right-4 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl border border-gray-200/50 dark:border-dark-border/50 z-40 rounded-2xl shadow-lg shadow-black/5 dark:shadow-none">
+            <div className="flex justify-around items-center py-3 px-2">
+              {bottomNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeModule === item.id;
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveModule(item.id as ModuleType);
-                    navigate(`/${item.id}`);
-                  }}
-                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg ${isActive
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-500 dark:text-gray-400"
-                    }`}
-                >
-                  <Icon size={20} />
-                  <span className="text-xs mt-1">{item.label}</span>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveModule(item.id as ModuleType);
+                      navigate(`/${item.id}`);
+                    }}
+                    className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-300 ${isActive
+                      ? "text-blue-600 dark:text-blue-400 scale-110"
+                      : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                      }`}
+                  >
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`text-[10px] font-medium mt-1 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <span className="absolute -bottom-1 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
+                    )}
+                  </button>
+                );
+              })}
 
-            {/* More button to open sidebar */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="flex flex-col items-center justify-center py-2 px-3 rounded-lg text-gray-500 dark:text-gray-400"
-            >
-              <Menu size={20} />
-              <span className="text-xs mt-1">More</span>
-            </button>
+              {/* More button to open sidebar */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-300"
+              >
+                <Menu size={22} strokeWidth={2} />
+                <span className="text-[10px] font-medium mt-1 opacity-70">More</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Add padding to content to prevent overlap with bottom nav */}
-        <div className="md:hidden h-16"></div>
+          {/* Add padding to content to prevent overlap with bottom nav */}
+          <div className="md:hidden h-24"></div>
       </main>
     </div>
   );

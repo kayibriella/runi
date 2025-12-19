@@ -26,9 +26,9 @@ export default {
       borderRadius: {
         'container': '0.75rem',
       },
-      fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-      },
+        fontFamily: {
+          sans: ['Outfit', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
     },
   },
   plugins: [],
