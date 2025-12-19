@@ -6,6 +6,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 export const create = mutation({
   args: {
     deposit_id: v.string(),
+    user_id: v.string(),
     deposit_type: v.string(),
     account_name: v.string(),
     account_number: v.string(),
@@ -13,6 +14,9 @@ export const create = mutation({
     to_recipient: v.string(),
     deposit_image_url: v.string(),
     approval: v.string(),
+    created_by: v.string(),
+    updated_at: v.number(),
+    updated_by: v.string(),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -20,10 +24,6 @@ export const create = mutation({
 
     return await ctx.db.insert("deposit", {
       ...args,
-      user_id: userId,
-      created_by: userId,
-      updated_by: userId,
-      updated_at: Date.now(),
     });
   },
 });
@@ -69,6 +69,7 @@ export const getById = query({
 export const update = mutation({
   args: {
     deposit_id: v.string(),
+    user_id: v.string(),
     deposit_type: v.string(),
     account_name: v.string(),
     account_number: v.string(),
@@ -76,6 +77,9 @@ export const update = mutation({
     to_recipient: v.string(),
     deposit_image_url: v.string(),
     approval: v.string(),
+    created_by: v.string(),
+    updated_at: v.number(),
+    updated_by: v.string(),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -91,15 +95,10 @@ export const update = mutation({
       throw new Error("Deposit not found");
     }
 
-    const deposit = deposits[0];
-    if (deposit.user_id !== userId) {
-      throw new Error("Access denied");
-    }
+    const depositId = deposits[0]._id;
 
-    return await ctx.db.patch(deposit._id, {
+    return await ctx.db.replace(depositId, {
       ...args,
-      updated_by: userId,
-      updated_at: Date.now(),
     });
   },
 });
@@ -121,12 +120,9 @@ export const remove = mutation({
       throw new Error("Deposit not found");
     }
 
-    const deposit = deposits[0];
-    if (deposit.user_id !== userId) {
-      throw new Error("Access denied");
-    }
+    const depositId = deposits[0]._id;
 
-    await ctx.db.delete(deposit._id);
-    return deposit._id;
+    await ctx.db.delete(depositId);
+    return depositId;
   },
 });
