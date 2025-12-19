@@ -143,17 +143,17 @@ export function Dashboard() {
   }).format(new Date());
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 max-w-7xl mx-auto space-y-6">
       {/* Welcome Section */}
-      <div className="relative overflow-hidden bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-6 md:p-8 shadow-sm group">
-        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
-          <BarChartIcon className="w-32 h-32 text-blue-600" />
+      <div className="relative overflow-hidden bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-4 md:p-6 shadow-sm group">
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+          <BarChartIcon className="w-20 h-20 text-blue-600" />
         </div>
         <div className="relative z-10">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white tracking-tight">
             Welcome back, <span className="text-blue-600">Ntwari Brian</span>! 👋
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
             {formattedDate}
           </p>
         </div>
