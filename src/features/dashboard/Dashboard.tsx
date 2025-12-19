@@ -136,6 +136,12 @@ export function Dashboard() {
     return null;
   };
 
+  const formattedDate = new Intl.DateTimeFormat('en-US', { 
+    weekday: 'long', 
+    month: 'short', 
+    day: 'numeric' 
+  }).format(new Date());
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       {/* Welcome Section */}
@@ -144,17 +150,17 @@ export function Dashboard() {
           <BarChartIcon className="w-32 h-32 text-blue-600" />
         </div>
         <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            Hello, <span className="text-blue-600">{currentUser?.fullName || currentUser?.name || "there"}</span> 👋
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            Welcome back, <span className="text-blue-600">Ntwari Brian</span>! 👋
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium max-w-md">
-            Here's what's happening with your business today. Everything looks {isLowStockCritical ? "busy" : "on track"}.
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+            {formattedDate}
           </p>
         </div>
       </div>
 
-      {/* Stats Cards - Desktop & Tablet */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {/* Stats Cards - 2x2 Grid */}
+      <div className="grid grid-cols-2 gap-4 md:gap-6">
         {statCards.map((card, index) => (
           <StatCard key={index} {...card} />
         ))}
