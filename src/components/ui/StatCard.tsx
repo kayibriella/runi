@@ -28,41 +28,38 @@ const statusColorClasses = {
 
 export function StatCard({ title, value, icon: Icon, color, indicator, detail, status }: StatCardProps) {
   return (
-    <div className="bg-white dark:bg-dark-card rounded-3xl border border-gray-100 dark:border-dark-border p-5 shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group">
+    <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">{title}</p>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{title}</p>
           <div className="flex flex-col">
-            <p className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">{value}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
             {detail && (
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold leading-tight mt-1 opacity-80">{detail}</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium leading-tight mt-0.5">{detail}</p>
             )}
             {status && (
-              <div className={`mt-2 flex items-center gap-1.5`}>
-                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'critical' ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                <p className={`text-[10px] font-black uppercase tracking-widest ${statusColorClasses[status]}`}>
-                  {status}
-                </p>
-              </div>
+              <p className={`text-[11px] font-bold mt-1 uppercase tracking-tight ${statusColorClasses[status]}`}>
+                {status}
+              </p>
             )}
           </div>
         </div>
-        <div className={`p-3 rounded-2xl transition-transform duration-500 group-hover:scale-110 ${colorClasses[color]}`}>
-          <Icon size={22} strokeWidth={2.5} />
+        <div className={`p-2.5 rounded-xl ${colorClasses[color]}`}>
+          <Icon size={20} strokeWidth={2.5} />
         </div>
       </div>
       
       {indicator && (
-        <div className="mt-5 flex items-center gap-2 pt-4 border-t border-gray-50 dark:border-dark-border/30">
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black ${
+        <div className="mt-4 flex items-center gap-2 pt-3 border-t border-gray-50 dark:border-dark-border/50">
+          <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
             indicator.isPositive 
-              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
-              : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' 
+              : 'bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400'
           }`}>
-            {indicator.isPositive ? <TrendingUp size={10} strokeWidth={3} /> : <TrendingDown size={10} strokeWidth={3} />}
+            {indicator.isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
             {Math.abs(indicator.value)}%
           </div>
-          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider opacity-60">vs last month</span>
+          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">vs last month</span>
         </div>
       )}
     </div>
