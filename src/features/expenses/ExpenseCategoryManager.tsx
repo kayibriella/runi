@@ -4,14 +4,17 @@ import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { Modal } from "../../components/ui/Modal";
 import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Wallet, ArrowRight, AlertCircle, TrendingUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Wallet, FolderOpen, DollarSign, Calendar } from "lucide-react";
 
 export function ExpenseCategoryManager() {
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("");
   const [editingId, setEditingId] = useState<Id<"expensecategory"> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   const [error, setError] = useState("");
 
   const categories = useQuery(api.expenseCategories.list);
@@ -21,26 +24,28 @@ export function ExpenseCategoryManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    if (!name.trim()) {
+      setError("Category name is required");
+      return;
+    }
 
     try {
       if (editingId) {
         await updateCategory({
           id: editingId,
-          name,
+          name: name.trim(),
           budget: budget ? parseFloat(budget) : undefined,
         });
-        setEditingId(null);
       } else {
         await createCategory({
-          name,
+          name: name.trim(),
           budget: budget ? parseFloat(budget) : undefined,
         });
-        setIsModalOpen(false);
       }
+      setIsModalOpen(false);
       setName("");
       setBudget("");
-      setIsModalOpen(false);
+      setEditingId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
@@ -62,12 +67,20 @@ export function ExpenseCategoryManager() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: Id<"expensecategory">) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
-    try {
-      await deleteCategory({ id });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete category");
+  const handleDeleteClick = (category: any) => {
+    setCategoryToDelete(category);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (categoryToDelete) {
+      try {
+        await deleteCategory({ id: categoryToDelete._id });
+        setIsDeleteConfirmOpen(false);
+        setCategoryToDelete(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to delete category");
+      }
     }
   };
 
@@ -80,197 +93,170 @@ export function ExpenseCategoryManager() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Header Section */}
-      <div className="bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-[2.5rem] border border-white/40 dark:border-white/10 p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold font-display tracking-tight text-gray-900 dark:text-white">Expense Categories</h2>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 font-sans">Manage your budgets and spending categories</p>
-          </div>
-          <Button
-            variant="primary"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-display font-bold shadow-lg shadow-blue-500/20 group transition-all hover:scale-105 active:scale-95"
-            onClick={openCreateModal}
-          >
-            <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            New Category
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-display font-semibold text-gray-900 dark:text-dark-text tracking-tight">Expense Categories</h2>
+        <Button 
+          variant="primary" 
+          onClick={openCreateModal}
+          className="shadow-lg shadow-blue-500/20"
+        >
+          <Plus size={18} className="mr-2" />
+          Create Category
+        </Button>
       </div>
 
-      {/* Grid of Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <AnimatePresence mode="popLayout">
           {categories.length > 0 ? (
             categories.map((cat, index) => (
               <motion.div
+                key={cat._id}
                 layout
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: index * 0.05 }}
-                key={cat._id}
-                className="group relative bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-[2rem] p-6 border border-white/40 dark:border-white/10 hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 overflow-hidden flex flex-col h-full"
+                whileHover={{ y: -4 }}
+                className="bg-white dark:bg-dark-card rounded-2xl border border-gray-200 dark:border-dark-border p-5 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-none transition-all duration-300 group"
               >
-                {/* Decorative glow */}
-                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors" />
-                
-                <div className="relative flex flex-col h-full space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
-                      <Wallet size={22} />
-                    </div>
-                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={() => openEditModal(cat)}
-                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors"
-                        title="Edit category"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat._id)}
-                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
-                        title="Delete category"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors duration-300">
+                    <Wallet className="h-7 w-7 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-300" />
                   </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white font-display tracking-tight leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      {cat.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <TrendingUp size={14} className="text-gray-400" />
-                      <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                        Expense Tracker
-                      </span>
-                    </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button 
+                      onClick={() => openEditModal(cat)}
+                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      title="Edit Category"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteClick(cat)}
+                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
+                </div>
 
-                  {cat.budget ? (
-                    <div className="mt-2 p-3 rounded-xl bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/5">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-sans mb-1">Monthly Budget</p>
-                      <p className="text-lg font-bold font-display text-gray-900 dark:text-white">
-                        ${cat.budget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-2 p-3 rounded-xl bg-gray-50/50 dark:bg-black/5 border border-dashed border-gray-200 dark:border-white/5">
-                      <p className="text-xs text-gray-400 dark:text-gray-500 font-sans italic">No budget set</p>
-                    </div>
-                  )}
+                <div>
+                  <h3 className="font-display font-semibold text-gray-900 dark:text-dark-text text-lg truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {cat.name}
+                  </h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-body">
+                    Created {new Date(cat._creationTime).toLocaleDateString()}
+                  </p>
+                </div>
 
-                  <div className="pt-4 mt-auto border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-sm">
-                    <span className="text-gray-400 font-sans text-xs italic">
-                      Created {new Date(cat._creationTime).toLocaleDateString()}
-                    </span>
-                    <ArrowRight size={14} className="text-gray-300 group-hover:text-indigo-500 transform group-hover:translate-x-1 transition-all" />
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-dark-border/50">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <DollarSign size={16} className="text-gray-400" />
+                    <span className="text-sm font-medium">Budget</span>
                   </div>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
+                    cat.budget 
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" 
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                  }`}>
+                    {cat.budget ? `$${cat.budget.toLocaleString()}` : "Not Set"}
+                  </span>
                 </div>
               </motion.div>
             ))
           ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="col-span-full bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-[2.5rem] border border-dashed border-gray-300 dark:border-white/10 py-16 text-center"
-            >
-              <div className="max-w-xs mx-auto space-y-4">
-                <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto">
-                  <Wallet size={32} className="text-gray-400" />
-                </div>
-                <h3 className="text-lg font-bold font-display text-gray-900 dark:text-white">No expense categories</h3>
-                <p className="text-sm text-gray-500 font-sans">Start tracking your expenses by adding your first category.</p>
-                <Button
-                  variant="primary"
-                  className="w-full mt-4 rounded-xl font-display"
-                  onClick={openCreateModal}
-                >
-                  Add Your First Category
-                </Button>
+            <div className="col-span-full bg-white dark:bg-dark-card rounded-2xl border border-dashed border-gray-300 dark:border-dark-border p-12 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800/50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FolderOpen className="h-10 w-10 text-gray-400" />
               </div>
-            </motion.div>
+              <h3 className="text-xl font-display font-bold text-gray-900 dark:text-dark-text mb-2">No categories yet</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-xs mx-auto">Create your first expense category to start organizing your business spending.</p>
+              <Button 
+                variant="primary" 
+                onClick={openCreateModal}
+                className="shadow-lg shadow-blue-500/20"
+              >
+                Create First Category
+              </Button>
+            </div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Modal for Creating/Editing */}
+      {/* Create/Edit Modal */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         title={editingId ? "Edit Category" : "Create New Category"}
       >
-        <div className="p-1">
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm font-medium"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Category Name"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (error) setError("");
+            }}
+            error={error}
+            placeholder="e.g., Marketing, Rent, Utilities"
+            autoFocus
+          />
+
+          <Input
+            label="Monthly Budget (Optional)"
+            type="number"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button 
+              type="button"
+              variant="secondary" 
+              onClick={() => setIsModalOpen(false)}
             >
-              <AlertCircle size={16} />
-              {error}
-            </motion.div>
-          )}
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              variant="primary"
+            >
+              {editingId ? "Update Category" : "Create Category"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal 
+        isOpen={isDeleteConfirmOpen} 
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title="Delete Category"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            Are you sure you want to delete the category <strong>{categoryToDelete?.name}</strong>? This action cannot be undone.
+          </p>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 font-display">
-                Category Name
-              </label>
-              <div className="relative group">
-                <input
-                  type="text"
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-sans text-gray-900 dark:text-white placeholder:text-gray-400"
-                  placeholder="e.g., Marketing, Rent, Utilities"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="budget" className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 font-display">
-                Monthly Budget (Optional)
-              </label>
-              <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                <input
-                  type="number"
-                  id="budget"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  className="w-full pl-8 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-sans text-gray-900 dark:text-white placeholder:text-gray-400"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                className="flex-1 rounded-xl shadow-lg shadow-blue-500/20"
-              >
-                {editingId ? "Update Category" : "Create Category"}
-              </Button>
-            </div>
-          </form>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button 
+              variant="secondary" 
+              onClick={() => setIsDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleConfirmDelete}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>
