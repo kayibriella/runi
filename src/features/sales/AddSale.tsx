@@ -7,7 +7,7 @@ import { useCurrentUser } from "../../lib/utils";
 
 export function AddSale() {
   const currentUser = useCurrentUser();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     product_id: "",
@@ -19,18 +19,18 @@ export function AddSale() {
     client_name: "",
     phone_number: ""
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Fetch products for dropdown
   const products = useQuery(api.products.list, {}) || [];
   const createSale = useMutation(api.sales.create);
   const createTransaction = useMutation(api.transactions.create);
-  
+
   // Handle form input changes
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear error when user types
     if (errors[field]) {
       setErrors(prev => {
@@ -40,103 +40,122 @@ export function AddSale() {
       });
     }
   };
-  
+
   // Validate form
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.product_id) {
       newErrors.product_id = "Product is required";
     }
-    
+
     if (!formData.boxes_quantity && !formData.kg_quantity) {
       newErrors.boxes_quantity = "Either boxes or kg quantity is required";
       newErrors.kg_quantity = "Either boxes or kg quantity is required";
     }
-    
+
     if (formData.boxes_quantity && isNaN(Number(formData.boxes_quantity))) {
       newErrors.boxes_quantity = "Must be a valid number";
     }
-    
+
     if (formData.kg_quantity && isNaN(Number(formData.kg_quantity))) {
       newErrors.kg_quantity = "Must be a valid number";
     }
-    
+
     // Check stock availability
     if (formData.product_id && (formData.boxes_quantity || formData.kg_quantity)) {
       const selectedProduct = products.find(p => p._id === formData.product_id);
       if (selectedProduct) {
         const requestedBoxes = parseFloat(formData.boxes_quantity) || 0;
         const requestedKg = parseFloat(formData.kg_quantity) || 0;
-        
+
         // Check if stock levels are zero or negative
         if (selectedProduct.quantity_box <= 0 && requestedBoxes > 0) {
           newErrors.boxes_quantity = `Insufficient stock. Available: ${selectedProduct.quantity_box} boxes`;
         }
-        
+
         if (selectedProduct.quantity_kg <= 0 && requestedKg > 0) {
           newErrors.kg_quantity = `Insufficient stock. Available: ${selectedProduct.quantity_kg} kg`;
         }
-        
+
         // Check if requested quantities exceed available stock
         if (requestedBoxes > selectedProduct.quantity_box && selectedProduct.quantity_box > 0) {
           newErrors.boxes_quantity = `Insufficient stock. Available: ${selectedProduct.quantity_box} boxes`;
         }
-        
+
         if (requestedKg > selectedProduct.quantity_kg && selectedProduct.quantity_kg > 0) {
           newErrors.kg_quantity = `Insufficient stock. Available: ${selectedProduct.quantity_kg} kg`;
         }
       }
     }
-    
+
     if ((formData.payment_status === "Pending" || formData.payment_status === "Half Paid") && !formData.client_name) {
       newErrors.client_name = "Client name is required for pending payments";
     }
-    
+
     if ((formData.payment_status === "Pending" || formData.payment_status === "Half Paid") && !formData.phone_number) {
       newErrors.phone_number = "Phone number is required for pending payments";
     }
-    
+
     if (formData.payment_status === "Half Paid" && !formData.amount_paid) {
       newErrors.amount_paid = "Amount paid is required when status is Half Paid";
     }
-    
+
     if (formData.amount_paid && isNaN(Number(formData.amount_paid))) {
       newErrors.amount_paid = "Must be a valid number";
     }
-    
+
+    // Amount vs Total Price validation
+    if (formData.product_id && (formData.boxes_quantity || formData.kg_quantity)) {
+      const selectedProduct = products.find(p => p._id === formData.product_id);
+      if (selectedProduct) {
+        const boxesQuantity = parseFloat(formData.boxes_quantity) || 0;
+        const kgQuantity = parseFloat(formData.kg_quantity) || 0;
+        const totalAmount = (boxesQuantity * selectedProduct.price_per_box) + (kgQuantity * selectedProduct.price_per_kg);
+        const amountPaid = parseFloat(formData.amount_paid) || 0;
+
+        if (amountPaid > totalAmount) {
+          newErrors.amount_paid = `Amount paid cannot be higher than the total price ($${totalAmount.toFixed(2)})`;
+        }
+
+        if (formData.payment_status === "Half Paid" && Math.abs(amountPaid - totalAmount) < 0.01) {
+          newErrors.amount_paid = "Amount is similar to the price. Please use 'Paid' status.";
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       if (!currentUser) {
         alert("You must be logged in to create a sale");
         return;
       }
-      
+
       const userId = currentUser._id;
-      
+
       // Find the selected product to get pricing information
       const selectedProduct = products.find(p => p._id === formData.product_id);
-      
+
       if (!selectedProduct) {
         throw new Error("Selected product not found");
       }
-      
+
       // Calculate quantities and amounts
       const boxesQuantity = parseFloat(formData.boxes_quantity) || 0;
       const kgQuantity = parseFloat(formData.kg_quantity) || 0;
-      
+
       // Calculate total amount based on product prices
       const totalAmount = (boxesQuantity * selectedProduct.price_per_box) + (kgQuantity * selectedProduct.price_per_kg);
-      
+
       // Determine amount paid based on payment status
       let amountPaid = 0;
       if (formData.payment_status === "Paid") {
@@ -145,9 +164,9 @@ export function AddSale() {
         // Use the entered amount if provided, otherwise default to half
         amountPaid = formData.amount_paid ? parseFloat(formData.amount_paid) : totalAmount / 2;
       }
-      
+
       const remainingAmount = totalAmount - amountPaid;
-      
+
       // Map payment status to match API requirements
       let apiPaymentStatus: "pending" | "partial" | "completed" = "pending";
       if (formData.payment_status === "Paid") {
@@ -157,7 +176,7 @@ export function AddSale() {
       } else {
         apiPaymentStatus = "pending";
       }
-      
+
       // Create the sale
       const saleId = await createSale({
         sales_id: `sale_${Date.now()}`,
@@ -180,7 +199,7 @@ export function AddSale() {
         phone_number: formData.phone_number,
         updated_at: Date.now()
       });
-      
+
       // Create the transaction
       await createTransaction({
         transaction_id: `txn_${Date.now()}`,
@@ -196,7 +215,7 @@ export function AddSale() {
         updated_by: userId,
         updated_at: Date.now()
       });
-      
+
       // Reset form
       setFormData({
         product_id: "",
@@ -208,27 +227,27 @@ export function AddSale() {
         client_name: "",
         phone_number: ""
       });
-      
+
       alert("Sale created successfully!");
     } catch (error) {
       console.error("Error creating sale:", error);
       alert("Failed to create sale. Please try again.");
     }
   };
-  
 
-  
+
+
   return (
     <div className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">New Sale</h2>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Product & Quantity */}
         <div className="border border-gray-200 dark:border-dark-border rounded-lg p-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text mb-4">Product & Quantity</h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">
@@ -237,9 +256,8 @@ export function AddSale() {
               <select
                 value={formData.product_id}
                 onChange={(e) => handleChange('product_id', e.target.value)}
-                className={`w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text transition-colors ${
-                  errors.product_id ? "border-red-300 focus:ring-red-500 focus:border-red-500" : ""
-                }`}
+                className={`w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-card dark:text-dark-text transition-colors ${errors.product_id ? "border-red-300 focus:ring-red-500 focus:border-red-500" : ""
+                  }`}
               >
                 <option value="">Select a product</option>
                 {products.map((product: any) => (
@@ -252,7 +270,7 @@ export function AddSale() {
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.product_id}</p>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Input
@@ -265,7 +283,7 @@ export function AddSale() {
                   step="0.01"
                 />
               </div>
-              
+
               <div>
                 <Input
                   label="Requested Kg Amount"
@@ -280,11 +298,11 @@ export function AddSale() {
             </div>
           </div>
         </div>
-        
+
         {/* Section 2: Payment Information */}
         <div className="border border-gray-200 dark:border-dark-border rounded-lg p-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text mb-4">Payment Information</h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">
@@ -300,7 +318,7 @@ export function AddSale() {
                 <option value="Bank Transfer">Bank Transfer</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-dark-text mb-1">
                 Payment Status
@@ -315,7 +333,7 @@ export function AddSale() {
                 <option value="Half Paid">Half Paid</option>
               </select>
             </div>
-            
+
             {/* Conditional Amount Paid Field */}
             {formData.payment_status === "Half Paid" && (
               <div>
@@ -328,16 +346,42 @@ export function AddSale() {
                   min="0"
                   step="0.01"
                 />
+                {formData.product_id && (formData.boxes_quantity || formData.kg_quantity) && (
+                  <div className="mt-2 space-y-1">
+                    {(() => {
+                      const selectedProduct = products.find(p => p._id === formData.product_id);
+                      if (!selectedProduct) return null;
+                      const boxesQuantity = parseFloat(formData.boxes_quantity) || 0;
+                      const kgQuantity = parseFloat(formData.kg_quantity) || 0;
+                      const total = (boxesQuantity * selectedProduct.price_per_box) + (kgQuantity * selectedProduct.price_per_kg);
+                      const amountEntered = parseFloat(formData.amount_paid) || 0;
+                      const isSimilar = Math.abs(amountEntered - total) < 0.01;
+
+                      return (
+                        <>
+                          <p className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                            Real Price: <span className="text-blue-600 dark:text-blue-400">${total.toFixed(2)}</span>
+                          </p>
+                          {isSimilar && (
+                            <p className="text-xs font-bold text-amber-600 dark:text-amber-400 animate-pulse">
+                              ⚠️ Amount is similar to the selling price. Please check again or use "Paid" status.
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Section 3: Client Information (Conditional Visibility) */}
         {(formData.payment_status === "Pending" || formData.payment_status === "Half Paid") && (
           <div className="border border-gray-200 dark:border-dark-border rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text mb-4">Client Information</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <Input
@@ -349,7 +393,7 @@ export function AddSale() {
                   placeholder="Enter client name"
                 />
               </div>
-              
+
               <div>
                 <Input
                   label="Phone Number"
@@ -363,7 +407,7 @@ export function AddSale() {
             </div>
           </div>
         )}
-        
+
         {/* Submit Button */}
         <div className="flex justify-end pt-4">
           <Button type="submit" variant="primary">
