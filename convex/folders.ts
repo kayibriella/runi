@@ -2,6 +2,8 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+const SYSTEM_FOLDERS = ["Deposited", "expense reciept"];
+
 // List all folders for the authenticated user
 export const list = query({
   args: {},
@@ -66,6 +68,11 @@ export const update = mutation({
       throw new Error("Folder not found or access denied");
     }
 
+    // Prevent editing system folders
+    if (SYSTEM_FOLDERS.includes(folder.folder_name)) {
+      throw new Error("This is a system folder and cannot be renamed");
+    }
+
     // If updating folder name, check for duplicates
     if (updates.folder_name) {
       const existingFolders = await ctx.db
@@ -101,6 +108,11 @@ export const deleteFolder = mutation({
     const folder = await ctx.db.get(args.id);
     if (!folder || folder.user_id !== userId) {
       throw new Error("Folder not found or access denied");
+    }
+
+    // Prevent deleting system folders
+    if (SYSTEM_FOLDERS.includes(folder.folder_name)) {
+      throw new Error("This is a system folder and cannot be deleted");
     }
 
     // Check if folder has files

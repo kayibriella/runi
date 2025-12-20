@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { Button } from "../../components/ui/Button";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Upload as UploadIcon, CheckCircle, X, Loader2, FileText } from "lucide-react";
 
 interface UploadProps {
   folderId: any;
@@ -102,89 +103,87 @@ export function Upload({ folderId, onUploadComplete }: UploadProps) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="text-center">
-        <h2 className="text-xl font-display font-bold text-gray-900 dark:text-dark-text tracking-tight">Upload to this Folder</h2>
-      </div>
+    <div className="max-w-2xl mx-auto">
+      <div className="bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-[2.5rem] border border-white/40 dark:border-white/10 p-8 shadow-xl overflow-hidden relative">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 font-display">
+              <UploadIcon size={16} className="text-blue-500" />
+              Select File to Upload
+            </label>
 
-      <div className="bg-white dark:bg-dark-card rounded-3xl border border-gray-200 dark:border-dark-border p-8 shadow-sm">
-        <div className="space-y-8">
-          {/* Custom Drop Zone */}
-          <motion.div
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            animate={{
-              borderColor: isDragging ? "rgb(37, 99, 235)" : "rgb(229, 231, 235)",
-              backgroundColor: isDragging ? "rgba(37, 99, 235, 0.05)" : "transparent"
-            }}
-            className="relative cursor-pointer group"
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-            />
+            <motion.div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              animate={{
+                borderColor: isDragging || isUploading ? "rgb(37, 99, 235)" : selectedFile ? "rgb(16, 185, 129)" : "rgba(229, 231, 235, 1)",
+                backgroundColor: isDragging ? "rgba(37, 99, 235, 0.05)" : "transparent"
+              }}
+              className={`
+                relative border-2 border-dashed rounded-2xl p-8 transition-all duration-300 cursor-pointer text-center
+                ${selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-gray-200 dark:border-white/10 hover:border-blue-500/50 bg-white/50 dark:bg-black/20'}
+                ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={isUploading}
+              />
 
-            <div className={`
-              border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300
-              ${selectedFile ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 hover:border-blue-400'}
-            `}>
-              <div className="bg-blue-50 dark:bg-blue-900/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-
-              <AnimatePresence mode="wait">
-                {selectedFile ? (
-                  <motion.div
-                    key="selected"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+              {selectedFile ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="p-3 bg-emerald-500/20 rounded-2xl text-emerald-600">
+                      <CheckCircle size={24} />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-gray-900 dark:text-white truncate max-w-[250px] font-display">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-emerald-600 font-medium font-sans">
+                        {formatFileSize(selectedFile.size)} • Ready to upload
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="p-2 hover:bg-red-500/10 rounded-xl text-gray-400 hover:text-red-500 transition-colors"
                   >
-                    <h3 className="text-lg font-display font-bold text-gray-900 dark:text-dark-text mb-1">{selectedFile.name}</h3>
-                    <p className="text-sm text-blue-600 font-medium">{formatFileSize(selectedFile.size)}</p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedFile(null);
-                        if (fileInputRef.current) fileInputRef.current.value = "";
-                      }}
-                      className="mt-4 text-xs font-semibold text-red-500 hover:text-red-600 uppercase tracking-wider"
-                    >
-                      Remove File
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="placeholder"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <h3 className="text-lg font-display font-bold text-gray-900 dark:text-dark-text mb-1">Click or drag file to upload</h3>
-                    <p className="text-gray-500 dark:text-gray-400 font-body">Support for PDF, Images, and Documents up to 50MB</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* Folder selection removed as it's handled by context */}
+                    <X size={20} />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 py-4">
+                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-600 dark:text-blue-400">
+                    <FileText size={32} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-display font-bold text-gray-900 dark:text-dark-text">Click or drag file here</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-sans">PDF, Images, or Documents (Max 50MB)</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
 
           {error && (
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-2xl flex items-center gap-3 text-sm font-medium"
             >
-              <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium text-red-800 dark:text-red-200">{error}</span>
+              <X size={18} />
+              {error}
             </motion.div>
           )}
 
@@ -192,17 +191,19 @@ export function Upload({ folderId, onUploadComplete }: UploadProps) {
             variant="primary"
             onClick={handleUpload}
             disabled={isUploading || !selectedFile}
-            className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-blue-500/20 disabled:shadow-none transition-all active:scale-[0.98]"
+            className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-blue-500/20 group transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
           >
             {isUploading ? (
-              <span className="flex items-center gap-3">
-                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Uploading File...
-              </span>
-            ) : "Upload to Cloud"}
+              <div className="flex items-center justify-center gap-3">
+                <Loader2 size={24} className="animate-spin" />
+                <span>Uploading...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <UploadIcon size={20} />
+                <span>Upload to Cloud</span>
+              </div>
+            )}
           </Button>
         </div>
       </div>
