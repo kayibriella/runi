@@ -3,7 +3,6 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "../ThemeProvider";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { AnimatedTimeDisplay } from "./AnimatedTimeDisplay";
 import { useState, useRef, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useNavigate } from "react-router-dom";
@@ -57,14 +56,19 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
     return (
         <div className="h-16 px-4 md:px-6 flex items-center justify-between bg-white/40 dark:bg-dark-card/40 backdrop-blur-md border-b border-gray-200 dark:border-dark-border sticky top-0 z-10">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                 <button
                     onClick={onMenuClick}
                     className="md:hidden p-1.5 text-gray-500 dark:text-dark-text hover:bg-gray-100 dark:hover:bg-dark-card rounded-full transition-colors"
                 >
                     <Menu size={18} />
                 </button>
-                <AnimatedTimeDisplay />
+                <div className="flex items-center gap-2 md:hidden">
+                    <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <img src="/logo.svg" alt="Runi Logo" className="w-4 h-4 invert brightness-0" />
+                    </div>
+                    <h1 className="text-base font-display font-bold tracking-tight text-gray-900 dark:text-white">Runi</h1>
+                </div>
             </div>
 
             <div className="flex items-center gap-2">
