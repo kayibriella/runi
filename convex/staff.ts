@@ -83,6 +83,56 @@ export const remove = mutation({
         const userId = await getAuthUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
 
+        // Fetch staff record to get storage IDs
+        const staff = await ctx.db.get(args.id);
+        if (!staff || staff.user_id !== userId) {
+            throw new Error("Staff member not found or access denied");
+        }
+
+        const storageIds = [staff.id_card_front_url, staff.id_card_back_url];
+
+        for (const storageId of storageIds) {
+            if (!storageId) continue;
+
+            // Find file record by storageId
+            const file = await ctx.db
+                .query("files")
+                .withIndex("by_user", (q) => q.eq("user_id", userId))
+                .filter((q) => q.eq(q.field("storage_id"), storageId))
+                .first();
+
+            if (file) {
+                // Delete from storage
+                try {
+                    await ctx.storage.delete(storageId as any);
+                } catch (e) {
+                    console.error(`Failed to delete storage object ${storageId}:`, e);
+                }
+
+                // Update folder stats if file was in a folder
+                if (file.folder_id) {
+                    const folder = await ctx.db.get(file.folder_id);
+                    if (folder) {
+                        await ctx.db.patch(file.folder_id, {
+                            file_count: Math.max(0, folder.file_count - 1),
+                            total_size: Math.max(0, folder.total_size - file.file_size),
+                            updated_at: Date.now(),
+                        });
+                    }
+                }
+
+                // Delete the file record
+                await ctx.db.delete(file._id);
+            } else {
+                // If no file record, at least try to delete from storage if it looks like a valid storage ID
+                try {
+                    await ctx.storage.delete(storageId as any);
+                } catch (e) {
+                    // Ignore errors if it's not a valid storage ID or already deleted
+                }
+            }
+        }
+
         await ctx.db.delete(args.id);
     },
 });
