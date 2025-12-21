@@ -4,14 +4,15 @@
 The frontend is built with React and TypeScript, using Vite as the build tool. The UI is styled with Tailwind CSS and follows a component-based architecture.
 
 ## Technology Stack
-- **Framework**: React 18 with Hooks
+- **Framework**: React 19 with Hooks
 - **Language**: TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
-- **State Management**: React Context API and Convex React SDK
-- **Routing**: React Router v6
-- **UI Components**: Custom component library with Lucide React icons
+- **State Management**: React Context API, Convex React SDK, and Framer Motion
+- **Routing**: React Router v6 (Direct URL access implemented)
+- **UI Components**: Radix UI & Lucide React icons
 - **Notifications**: Sonner
+- **Animations**: Framer Motion
 
 ## Project Structure
 ```
@@ -44,15 +45,16 @@ src/
 
 ### Feature Components
 Each feature has its own directory with related components:
-- **Auth**: Sign in, sign up, forgot password forms
-- **Dashboard**: Main dashboard view with statistics
-- **Products**: Product listing, creation, and management
-- **Sales**: Sales recording and management
-- **Expenses**: Expense tracking and categorization
-- **Documents**: File and folder management
-- **Cash Tracking**: Financial flows, including bank/mobile money deposits and debt tracking.
-- **Reports**: Business reporting and analytics
-- **Settings**: User profile and preferences
+- **Auth**: Sign in, sign up, and Staff-specific login portal
+- **Dashboard**: Main dashboard view with statistics and real-time graphs
+- **Products**: Product listing, creation, and 2-phase approval workflow
+- **Sales**: Sales recording, debt tracking, and transaction auditing
+- **Expenses**: Expense tracking with category-based budgets
+- **Documents**: Folder-based file management system
+- **Cash Tracking**: Financial flows, including bank/mobile money deposits
+- **Staff**: Dedicated UI for managing staff roles and permissions
+- **Reports**: Daily and monthly business analytics
+- **Settings**: User profile and application preferences
 - **Users**: Team member management
 
 ### UI Components

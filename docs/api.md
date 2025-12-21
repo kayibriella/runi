@@ -29,8 +29,10 @@ Available queries by module:
 - `api.productCategories.list`: List all product categories
 - `api.products.list`: List all products
 - `api.sales.list`: List all sales
+- `api.sales.listAudit`: List sales audit logs
+- `api.staff.list`: List all staff members
+- `api.deposit.list`: List all deposits
 - `api.settings.get`: Get user settings
-
 - `api.users.get`: Get user profile
 
 ### Mutations
@@ -69,7 +71,12 @@ Available mutations by module:
 - `api.sales.create`: Create new sale
 - `api.sales.update`: Update sale
 - `api.sales.delete`: Delete sale
-- `api.settings.update`: Update user settings
+- `api.sales.approve`: Approve sale modification
+- `api.staff.create`: Register new staff member
+- `api.staff.update`: Update staff details
+- `api.staff.toggleStatus`: Activate/Deactivate staff
+- `api.deposit.create`: Record new deposit
+- `api.deposit.updateStatus`: Approve/Reject deposit
 - `api.settings.update`: Update user settings
 
 ### Actions

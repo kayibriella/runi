@@ -36,11 +36,17 @@ The application uses Convex Authentication with a Password provider. This provid
 4. Credentials are verified against stored hashed passwords
 5. Session created and user redirected to dashboard
 
+#### Staff Sign In
+1. User selects "Staff Login" from the landing page.
+2. Staff enters their unique ID or email and custom password.
+3. Backend validates credentials against the `staff` table.
+4. Custom session token is generated and stored in a secure cookie.
+5. Staff redirected to the restricted dashboard based on their permissions.
+
 #### Password Reset
-1. User clicks "Forgot Password" on sign-in page
-2. User enters business email address
-3. Password reset instructions sent to email (if implemented)
-4. User follows instructions to reset password
+1. User clicks "Forgot Password" on sign-in page.
+2. User enters business email address.
+3. Password reset instructions sent to email (if configured).
 
 ### Protected Routes
 All application routes are protected using Convex's `Authenticated` and `Unauthenticated` components:
