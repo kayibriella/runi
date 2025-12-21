@@ -164,14 +164,49 @@ export const login = mutation({
             throw new ConvexError("Invalid email or password");
         }
 
-        // Reset failed attempts on successful login
+        // Reset failed attempts on successful login and create session
+        const sessionToken = crypto.randomUUID();
+        const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+
         await ctx.db.patch(staff._id, {
             failed_login_attempts: 0,
+            session_token: sessionToken,
+            session_expiry: sessionExpiry,
             updated_at: Date.now(),
         });
 
         // Safe return (exclude password)
         const { password, ...staffData } = staff;
+        return { ...staffData, session_token: sessionToken };
+    },
+});
+
+export const validateSession = query({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const staff = await ctx.db
+            .query("staff")
+            .withIndex("by_email") // We can't query by token efficiently without an index, checking all matches or adding index is better. For now, filter.
+            .filter((q) => q.eq(q.field("session_token"), args.token))
+            .first();
+
+        if (!staff) return null;
+
+        if (staff.session_expiry && staff.session_expiry < Date.now()) {
+            return null; // Expired
+        }
+
+        const { password, ...staffData } = staff;
         return staffData;
+    },
+});
+
+export const logout = mutation({
+    args: { id: v.id("staff") },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            session_token: undefined,
+            session_expiry: undefined,
+        });
     },
 });

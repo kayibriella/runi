@@ -291,7 +291,8 @@ const applicationTables = {
     id_card_front_url: v.string(),
     id_card_back_url: v.string(),
     password: v.string(),
-    session: v.optional(v.string()),
+    session_token: v.optional(v.string()),
+    session_expiry: v.optional(v.number()),
     failed_login_attempts: v.optional(v.number()),
     updated_at: v.number(),
   })

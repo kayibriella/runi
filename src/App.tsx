@@ -6,7 +6,7 @@ import { ForgotPasswordForm } from "./features/auth/ForgotPasswordForm";
 import { SignOutButton } from "./features/auth/SignOutButton";
 import { Toaster } from "sonner";
 import { BusinessDashboard } from "./components/layout/BusinessDashboard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { Routes, Route } from "react-router-dom";
 
@@ -16,6 +16,21 @@ import { StaffDashboard } from "./features/staff/StaffDashboard";
 export default function App() {
   const [authView, setAuthView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'staffLogin'>('signIn');
   const [staffUser, setStaffUser] = useState<any | null>(null);
+  const [staffToken, setStaffToken] = useState<string | null>(localStorage.getItem('staff_session_token'));
+
+  // Validate session if token exists
+  const validatedStaff = useQuery(api.staff.validateSession, staffToken ? { token: staffToken } : "skip");
+
+  useEffect(() => {
+    if (validatedStaff) {
+      setStaffUser(validatedStaff);
+    } else if (staffToken && validatedStaff === null) {
+      // Token invalid or expired
+      localStorage.removeItem('staff_session_token');
+      setStaffToken(null);
+      setStaffUser(null);
+    }
+  }, [validatedStaff, staffToken]);
 
   const AuthForm = () => {
     if (authView === 'signUp') {

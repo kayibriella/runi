@@ -29,6 +29,9 @@ export function StaffLoginForm({ onSwitchToBusinessLogin, onLogin }: StaffLoginF
             });
 
             toast.success("Login successful");
+            if (user.session_token) {
+                localStorage.setItem("staff_session_token", user.session_token);
+            }
             onLogin(user);
         } catch (error: any) {
             toast.error(error.message || "Failed to login. Please check your credentials.");
