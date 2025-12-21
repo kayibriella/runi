@@ -40,6 +40,7 @@ export function Folder() {
     // Initialize default folders
     getOrCreateFolder({ folder_name: "Deposited" });
     getOrCreateFolder({ folder_name: "expense reciept" });
+    getOrCreateFolder({ folder_name: "Staff" });
   }, [getOrCreateFolder]);
 
   const handleCreateFolder = async () => {
@@ -207,7 +208,7 @@ export function Folder() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
                 </div>
-                {!["Deposited", "expense reciept"].includes(folder.folder_name) && (
+                {!["Deposited", "expense reciept", "Staff"].includes(folder.folder_name) && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
                       onClick={(e) => {

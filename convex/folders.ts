@@ -2,7 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-const SYSTEM_FOLDERS = ["Deposited", "expense reciept"];
+const SYSTEM_FOLDERS = ["Deposited", "expense reciept", "Staff"];
 
 // List all folders for the authenticated user
 export const list = query({

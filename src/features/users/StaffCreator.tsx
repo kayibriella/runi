@@ -15,6 +15,8 @@ interface StaffCreatorProps {
 export function StaffCreator({ isOpen, onClose }: StaffCreatorProps) {
     const generateUploadUrl = useMutation(api.staff.generateUploadUrl);
     const createStaff = useMutation(api.staff.create);
+    const getOrCreateFolder = useMutation(api.folders.getOrCreateByName);
+    const createFileRecord = useMutation(api.files.create);
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -94,9 +96,29 @@ export function StaffCreator({ isOpen, onClose }: StaffCreatorProps) {
                 body: idBack,
             });
             const { storageId: storageIdBack } = await resultBack.json();
-            const storageUrlBack = `${window.location.origin}/api/storage/${storageIdBack}`; // Placeholder
 
-            // 3. Create Staff Record
+            // 3. Save files to "Staff" folder
+            const folderId = await getOrCreateFolder({ folder_name: "Staff" });
+
+            // Create file record for Front ID
+            await createFileRecord({
+                storageId: storageIdFront,
+                fileName: `ID_Front_${formData.fullName.replace(/\s+/g, '_')}_${Date.now()}.jpg`, // normalized name
+                fileType: idFront!.type,
+                fileSize: idFront!.size,
+                folderId: folderId,
+            });
+
+            // Create file record for Back ID
+            await createFileRecord({
+                storageId: storageIdBack,
+                fileName: `ID_Back_${formData.fullName.replace(/\s+/g, '_')}_${Date.now()}.jpg`,
+                fileType: idBack!.type,
+                fileSize: idBack!.size,
+                folderId: folderId,
+            });
+
+            // 4. Create Staff Record
             await createStaff({
                 staff_full_name: formData.fullName,
                 email_address: formData.email,
