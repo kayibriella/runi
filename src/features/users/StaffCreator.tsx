@@ -161,144 +161,135 @@ export function StaffCreator({ isOpen, onClose }: StaffCreatorProps) {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-white/5 overflow-hidden"
+                        className="relative w-full max-w-lg bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/5 overflow-hidden"
                     >
-                        <div className="p-8">
-                            <div className="flex items-center justify-between mb-8">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-3xl font-bold font-display text-gray-900 dark:text-white">Create Staff</h2>
-                                    <p className="text-gray-500 dark:text-gray-400 font-sans mt-1">Register a new member to your team</p>
+                                    <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white">Create Staff</h2>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-sans mt-0.5">Register team member</p>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-3 bg-gray-100 dark:bg-white/5 rounded-2xl text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                    className="p-2 bg-gray-100 dark:bg-white/5 rounded-xl text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
-                                    <X size={24} />
+                                    <X size={20} />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input
                                         label="Full Name"
                                         placeholder="John Doe"
-                                        icon={<User size={18} />}
+                                        icon={<User size={16} />}
                                         value={formData.fullName}
                                         onChange={(e) => handleChange('fullName', e.target.value)}
                                         error={errors.fullName}
                                         disabled={isUploading}
+                                        className="h-11"
                                     />
                                     <Input
                                         label="Email Address"
                                         placeholder="john@example.com"
                                         type="email"
-                                        icon={<Mail size={18} />}
+                                        icon={<Mail size={16} />}
                                         value={formData.email}
                                         onChange={(e) => handleChange('email', e.target.value)}
                                         error={errors.email}
                                         disabled={isUploading}
+                                        className="h-11"
                                     />
                                     <Input
                                         label="Phone Number"
                                         placeholder="+1234567890"
-                                        icon={<Phone size={18} />}
+                                        icon={<Phone size={16} />}
                                         value={formData.phone}
                                         onChange={(e) => handleChange('phone', e.target.value)}
                                         error={errors.phone}
                                         disabled={isUploading}
+                                        className="h-11"
                                     />
-                                    <div className="hidden md:block" /> {/* Spacer */}
+                                    <div className="hidden md:block" />
 
                                     <Input
-                                        label="Create Password"
+                                        label="Password"
                                         type="password"
-                                        icon={<Lock size={18} />}
+                                        icon={<Lock size={16} />}
                                         value={formData.password}
                                         onChange={(e) => handleChange('password', e.target.value)}
                                         error={errors.password}
                                         disabled={isUploading}
+                                        className="h-11"
                                     />
                                     <Input
-                                        label="Confirm Password"
+                                        label="Confirm"
                                         type="password"
-                                        icon={<Lock size={18} />}
+                                        icon={<Lock size={16} />}
                                         value={formData.confirmPassword}
                                         onChange={(e) => handleChange('confirmPassword', e.target.value)}
                                         error={errors.confirmPassword}
                                         disabled={isUploading}
+                                        className="h-11"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-2 gap-4">
                                     {/* ID Front */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 font-display flex items-center gap-2">
-                                            <ImageIcon size={16} className="text-blue-500" />
-                                            ID Card Front
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 ml-1 font-display flex items-center gap-1.5">
+                                            <ImageIcon size={12} className="text-blue-500" />
+                                            ID Front
                                         </label>
                                         <div
                                             onClick={() => idFrontInputRef.current?.click()}
-                                            className={`relative border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${idFront ? 'border-emerald-500 bg-emerald-500/5' : 'border-gray-200 dark:border-white/10 hover:border-blue-500/50'
+                                            className={`relative border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${idFront ? 'border-emerald-500 bg-emerald-500/5' : 'border-gray-200 dark:border-white/10 hover:border-blue-500/50'
                                                 }`}
                                         >
                                             <input type="file" ref={idFrontInputRef} onChange={(e) => handleFileChange(e, 'front')} className="hidden" accept="image/*" />
                                             {idFront ? (
-                                                <div className="flex items-center justify-center gap-3 text-emerald-600">
-                                                    <CheckCircle size={20} />
-                                                    <span className="text-sm font-bold truncate max-w-[150px]">{idFront.name}</span>
-                                                </div>
+                                                <CheckCircle size={18} className="mx-auto text-emerald-600" />
                                             ) : (
-                                                <div className="space-y-1 text-gray-500">
-                                                    <div className="flex justify-center"><Upload size={24} /></div>
-                                                    <p className="text-xs font-bold">Click to upload front</p>
-                                                </div>
+                                                <Upload size={18} className="mx-auto text-gray-400" />
                                             )}
                                         </div>
-                                        {errors.idFront && <p className="text-xs text-red-500 font-bold ml-1">{errors.idFront}</p>}
                                     </div>
 
                                     {/* ID Back */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 font-display flex items-center gap-2">
-                                            <ImageIcon size={16} className="text-blue-500" />
-                                            ID Card Back
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 ml-1 font-display flex items-center gap-1.5">
+                                            <ImageIcon size={12} className="text-blue-500" />
+                                            ID Back
                                         </label>
                                         <div
                                             onClick={() => idBackInputRef.current?.click()}
-                                            className={`relative border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${idBack ? 'border-emerald-500 bg-emerald-500/5' : 'border-gray-200 dark:border-white/10 hover:border-blue-500/50'
+                                            className={`relative border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${idBack ? 'border-emerald-500 bg-emerald-500/5' : 'border-gray-200 dark:border-white/10 hover:border-blue-500/50'
                                                 }`}
                                         >
                                             <input type="file" ref={idBackInputRef} onChange={(e) => handleFileChange(e, 'back')} className="hidden" accept="image/*" />
                                             {idBack ? (
-                                                <div className="flex items-center justify-center gap-3 text-emerald-600">
-                                                    <CheckCircle size={20} />
-                                                    <span className="text-sm font-bold truncate max-w-[150px]">{idBack.name}</span>
-                                                </div>
+                                                <CheckCircle size={18} className="mx-auto text-emerald-600" />
                                             ) : (
-                                                <div className="space-y-1 text-gray-500">
-                                                    <div className="flex justify-center"><Upload size={24} /></div>
-                                                    <p className="text-xs font-bold">Click to upload back</p>
-                                                </div>
+                                                <Upload size={18} className="mx-auto text-gray-400" />
                                             )}
                                         </div>
-                                        {errors.idBack && <p className="text-xs text-red-500 font-bold ml-1">{errors.idBack}</p>}
                                     </div>
                                 </div>
 
-                                <div className="pt-4">
+                                <div className="pt-2">
                                     <Button
                                         type="submit"
                                         variant="primary"
                                         disabled={isUploading}
-                                        className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-blue-500/20 group transition-all hover:scale-[1.02] active:scale-95"
+                                        className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-blue-500/20 group transition-all active:scale-95"
                                     >
                                         {isUploading ? (
-                                            <div className="flex items-center justify-center gap-3">
-                                                <Loader2 size={24} className="animate-spin" />
-                                                <span>Creating Staff...</span>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 size={20} className="animate-spin" />
+                                                <span>Creating...</span>
                                             </div>
                                         ) : (
-                                            "Register Staff Member"
+                                            "Register Staff"
                                         )}
                                     </Button>
                                 </div>
