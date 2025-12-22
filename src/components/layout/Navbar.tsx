@@ -49,7 +49,7 @@ export function Navbar({ onMenuClick, user: providedUser, onLogout: providedOnLo
     const handleViewProfile = () => {
         setDropdownOpen(false);
         if (providedUser) {
-            navigate("/staff/settings");
+            navigate("/staff-portal/settings");
         } else {
             navigate("/settings");
         }

@@ -40,7 +40,7 @@ export function StaffDashboardLayout({ staffUser, onLogout }: StaffDashboardLayo
                 // If we are at /staff/dashboard (layout mounted), activeModule is dashboard
             } else {
                 setActiveModule("dashboard");
-                navigate("/staff/dashboard", { replace: true });
+                navigate("/staff-portal/dashboard", { replace: true });
             }
         }
     }, [module, navigate]);
@@ -82,7 +82,7 @@ export function StaffDashboardLayout({ staffUser, onLogout }: StaffDashboardLayo
                     activeModule={activeModule}
                     onModuleChange={(module) => {
                         setActiveModule(module as StaffModuleType);
-                        navigate(`/staff/${module}`);
+                        navigate(`/staff-portal/${module}`);
                         if (window.innerWidth < 768) setSidebarOpen(false);
                     }}
                     menuGroups={staffMenuGroups}
@@ -120,7 +120,7 @@ export function StaffDashboardLayout({ staffUser, onLogout }: StaffDashboardLayo
                                     key={item.id}
                                     onClick={() => {
                                         setActiveModule(item.id as StaffModuleType);
-                                        navigate(`/staff/${item.id}`);
+                                        navigate(`/staff-portal/${item.id}`);
                                     }}
                                     className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg ${isActive
                                         ? "text-blue-600 dark:text-blue-400"

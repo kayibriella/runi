@@ -30,8 +30,8 @@ function AppContent() {
     if (validatedStaff) {
       setStaffUser(validatedStaff);
       // Valid session found, if we are on login OR root, go to dashboard
-      if (location.pathname === '/staff/login' || location.pathname === '/') {
-        navigate('/staff/dashboard', { replace: true });
+      if (location.pathname === '/staff-portal/login' || location.pathname === '/') {
+        navigate('/staff-portal/dashboard', { replace: true });
       }
     } else if (staffToken && validatedStaff === null) {
       // Token invalid or expired
@@ -39,8 +39,8 @@ function AppContent() {
       setStaffToken(null);
       setStaffUser(null);
       // If we were on dashboard, go to login
-      if (location.pathname.startsWith('/staff/dashboard')) {
-        navigate('/staff/login');
+      if (location.pathname.startsWith('/staff-portal/dashboard')) {
+        navigate('/staff-portal/login');
       }
     }
   }, [validatedStaff, staffToken, location.pathname, navigate]);
@@ -55,7 +55,7 @@ function AppContent() {
     return <SignInForm
       onSwitchToSignUp={() => setAuthView('signUp')}
       onSwitchToForgotPassword={() => setAuthView('forgotPassword')}
-      onSwitchToStaffLogin={() => navigate('/staff/login')}
+      onSwitchToStaffLogin={() => navigate('/staff-portal/login')}
     />;
   };
 
@@ -68,7 +68,7 @@ function AppContent() {
       <Routes>
         {/* Business/Admin Routes */}
         {/* Staff Routes */}
-        <Route path="/staff/login" element={
+        <Route path="/staff-portal/login" element={
           <div className="min-h-screen flex items-center justify-center p-4">
             <StaffLoginForm
               onSwitchToBusinessLogin={() => navigate('/')}
@@ -77,7 +77,7 @@ function AppContent() {
           </div>
         } />
 
-        <Route path="/staff/*" element={
+        <Route path="/staff-portal/*" element={
           staffUser ? (
             <Routes>
               <Route path="dashboard" element={
@@ -87,7 +87,7 @@ function AppContent() {
                     localStorage.removeItem('staff_session_token');
                     setStaffToken(null);
                     setStaffUser(null);
-                    navigate('/staff/login');
+                    navigate('/staff-portal/login');
                   }}
                 />
               } />
@@ -98,14 +98,14 @@ function AppContent() {
                     localStorage.removeItem('staff_session_token');
                     setStaffToken(null);
                     setStaffUser(null);
-                    navigate('/staff/login');
+                    navigate('/staff-portal/login');
                   }}
                 />
               } />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           ) : (
-            <Navigate to="/staff/login" replace />
+            <Navigate to="/staff-portal/login" replace />
           )
         } />
 

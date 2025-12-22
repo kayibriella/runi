@@ -38,7 +38,7 @@ export function StaffLoginForm({ onSwitchToBusinessLogin, onLogin }: StaffLoginF
             }
 
             // Redirect to dashboard
-            navigate("/staff/dashboard");
+            navigate("/staff-portal/dashboard");
 
         } catch (error: any) {
             const errorMessage = error.data || error.message || "Failed to login. Please check your credentials.";
