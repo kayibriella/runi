@@ -86,6 +86,8 @@ export function StaffDashboardLayout({ staffUser, onLogout }: StaffDashboardLayo
                         if (window.innerWidth < 768) setSidebarOpen(false);
                     }}
                     menuGroups={staffMenuGroups}
+                    user={staffUser}
+                    onLogout={onLogout}
                 />
             </div>
 

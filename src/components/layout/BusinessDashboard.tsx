@@ -10,6 +10,8 @@ import { Users } from "../../features/users/Users";
 import { Settings } from "../../features/settings/Settings";
 import { CashTracking } from "../../features/cash-tracking/CashTracking";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export type ModuleType =
   | "dashboard"
@@ -91,16 +93,22 @@ export function BusinessDashboard() {
     { id: "expenses", label: "Expenses", icon: Receipt },
   ];
 
+  const user = useQuery(api.auth.loggedInUser);
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-dark-bg">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block md:static fixed inset-y-0 left-0 z-30`}>
-        <Sidebar activeModule={activeModule} onModuleChange={(module) => {
-          setActiveModule(module);
-          navigate(`/${module}`);
-          // Close sidebar on mobile after selection
-          if (window.innerWidth < 768) setSidebarOpen(false);
-        }} />
+        <Sidebar 
+          activeModule={activeModule} 
+          onModuleChange={(module) => {
+            setActiveModule(module);
+            navigate(`/${module}`);
+            // Close sidebar on mobile after selection
+            if (window.innerWidth < 768) setSidebarOpen(false);
+          }} 
+          user={user}
+        />
       </div>
 
       {/* Overlay for mobile */}

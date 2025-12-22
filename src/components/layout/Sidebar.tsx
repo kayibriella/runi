@@ -28,6 +28,15 @@ interface SidebarProps {
   activeModule: string;
   onModuleChange: (module: string) => void;
   menuGroups?: MenuGroup[];
+  user?: {
+    name?: string;
+    fullName?: string;
+    staff_full_name?: string;
+    businessName?: string;
+    email?: string;
+    id?: string;
+  } | null;
+  onLogout?: () => void;
 }
 
 const defaultMenuGroups: MenuGroup[] = [
@@ -62,7 +71,13 @@ const defaultMenuGroups: MenuGroup[] = [
   }
 ];
 
-export function Sidebar({ activeModule, onModuleChange, menuGroups = defaultMenuGroups }: SidebarProps) {
+export function Sidebar({
+  activeModule,
+  onModuleChange,
+  menuGroups = defaultMenuGroups,
+  user,
+  onLogout
+}: SidebarProps) {
   return (
     <div className="w-64 bg-white dark:bg-[#1a1a1a] border-r border-gray-100 dark:border-white/5 flex flex-col h-full shadow-sm">
       <div className="p-4">
@@ -120,7 +135,7 @@ export function Sidebar({ activeModule, onModuleChange, menuGroups = defaultMenu
 
       <div className="p-3 mt-auto">
         <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-2.5 border border-gray-100 dark:border-white/5 transition-all hover:border-gray-200 dark:hover:border-white/10 group">
-          <SignOutButton />
+          <SignOutButton user={user} onLogout={onLogout} />
         </div>
       </div>
 
