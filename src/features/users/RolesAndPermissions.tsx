@@ -57,6 +57,7 @@ export function RolesAndPermissions() {
           id: "categories",
           label: "Categories",
           permissions: [
+            { id: "p4_view", name: "View Category", description: "Allow staff to see product categories", enabled: true },
             { id: "p4_add", name: "Add Category", description: "Allow staff to create new product categories", enabled: true },
             { id: "p4_edit", name: "Edit Category", description: "Allow staff to modify existing product categories", enabled: true },
             { id: "p4_delete", name: "Delete Category", description: "Allow staff to remove product categories", enabled: false },
@@ -66,6 +67,7 @@ export function RolesAndPermissions() {
           id: "product-adding",
           label: "Product Adding",
           permissions: [
+            { id: "p2_view", name: "View Product List", description: "Allow staff to see all product entries", enabled: true },
             { id: "p2", name: "Adding Only", description: "Allow staff to only create new product entries", enabled: false },
           ]
         },
@@ -73,6 +75,7 @@ export function RolesAndPermissions() {
           id: "live-stock",
           label: "Live Stock",
           permissions: [
+            { id: "p1_view", name: "View Stock", description: "Allow staff to see current stock levels", enabled: true },
             { id: "p1_edit", name: "Edit Stock", description: "Allow staff to modify stock levels", enabled: true },
             { id: "p1_delete", name: "Delete Stock Entry", description: "Allow staff to remove stock entries", enabled: false },
           ]
@@ -88,6 +91,7 @@ export function RolesAndPermissions() {
           id: "manage-sales",
           label: "Manage Sales",
           permissions: [
+            { id: "s1_view", name: "View Sales Config", description: "Allow staff to see sales configurations", enabled: true },
             { id: "s1_edit", name: "Edit Sales Config", description: "Allow staff to modify sales configurations", enabled: true },
             { id: "s1_delete", name: "Delete Sales Config", description: "Allow staff to remove sales configurations", enabled: false },
           ]
@@ -96,6 +100,7 @@ export function RolesAndPermissions() {
           id: "audit-sales",
           label: "Audit Sales",
           permissions: [
+            { id: "s4_view", name: "View Sales Audit", description: "Allow staff to see sales validation history", enabled: true },
             { id: "s4_confirm", name: "Confirm Sale", description: "Allow staff to confirm and validate sales", enabled: true },
             { id: "s4_reject", name: "Reject Sale", description: "Allow staff to reject or cancel sales", enabled: false },
           ]
@@ -108,59 +113,63 @@ export function RolesAndPermissions() {
       icon: LineChart,
       subGroups: [
         {
-          id: "register",
-          label: "Register",
+          id: "deposited",
+          label: "Deposited",
           permissions: [
-            { id: "c1", name: "Open/Close Register", description: "Allow staff to open and close daily cash registers", enabled: true },
-            { id: "c4", name: "Cash Reconciliation", description: "Allow staff to perform end-of-day cash counts", enabled: true },
+            { id: "c1_view", name: "View Deposited", description: "Allow staff to see deposited cash records", enabled: true },
+            { id: "c1_create", name: "Create Deposition", description: "Allow staff to record new cash depositions", enabled: true },
+            { id: "c1_edit", name: "Edit Deposited", description: "Allow staff to modify deposited cash records", enabled: true },
+            { id: "c1_delete", name: "Delete Deposited", description: "Allow staff to remove deposited cash records", enabled: false },
           ]
         },
         {
-          id: "management",
-          label: "Management",
+          id: "debtor",
+          label: "Debtor",
           permissions: [
-            { id: "c2", name: "View Cash Flows", description: "Allow staff to see all cash movements", enabled: false },
-            { id: "c3", name: "Perform Cash Payouts", description: "Allow staff to record cash leaving the register", enabled: false },
-          ]
-        }
-      ]
-    },
-    {
-      id: "expenses",
-      label: "Expenses",
-      icon: Wallet,
-      subGroups: [
-        {
-          id: "general",
-          label: "General",
-          permissions: [
-            { id: "e1", name: "View Expenses", description: "Allow staff to see the list of business expenses", enabled: true },
-          ]
-        },
-        {
-          id: "management",
-          label: "Management",
-          permissions: [
-            { id: "e2", name: "Record Expenses", description: "Allow staff to log new business expenditures", enabled: false },
-            { id: "e3", name: "Approve Expenses", description: "Allow staff to approve pending expense reports", enabled: false },
-            { id: "e4", name: "Manage Vendors", description: "Allow staff to add or edit vendor information", enabled: true },
+            { id: "c2_view", name: "View Debtors", description: "Allow staff to see the list of debtors", enabled: true },
           ]
         }
       ]
     }
   ]);
 
+  const [nudgeViewId, setNudgeViewId] = useState<string | null>(null);
+
   const togglePermission = (groupId: string, subGroupId: string, permissionId: string) => {
+    const subGroup = permissionGroups.find(g => g.id === groupId)?.subGroups.find(sg => sg.id === subGroupId);
+    const viewPermission = subGroup?.permissions.find(p => p.id.includes("_view"));
+    const isView = permissionId.includes("_view");
+
+    // If trying to enable a non-view permission while view is off, nudge the user
+    if (!isView && !viewPermission?.enabled) {
+      if (viewPermission) {
+        setNudgeViewId(viewPermission.id);
+        setTimeout(() => setNudgeViewId(null), 2000);
+      }
+      return;
+    }
+
     setPermissionGroups(groups => groups.map(group => {
       if (group.id === groupId) {
         return {
           ...group,
           subGroups: group.subGroups.map(subGroup => {
             if (subGroup.id === subGroupId) {
+              const currentPermission = subGroup.permissions.find(p => p.id === permissionId);
+              const willBeEnabled = !currentPermission?.enabled;
+
+              // If we're turning OFF a "View" permission, turn off all others in this subgroup
+              if (isView && !willBeEnabled) {
+                return {
+                  ...subGroup,
+                  permissions: subGroup.permissions.map(p => ({ ...p, enabled: false }))
+                };
+              }
+
               return {
                 ...subGroup,
                 permissions: subGroup.permissions.map(p =>
-                  p.id === permissionId ? { ...p, enabled: !p.enabled } : p
+                  p.id === permissionId ? { ...p, enabled: willBeEnabled } : p
                 )
               };
             }
@@ -170,6 +179,10 @@ export function RolesAndPermissions() {
       }
       return group;
     }));
+  };
+
+  const isSubGroupEnabled = (subGroup: PermissionSubGroup) => {
+    return subGroup.permissions.some(p => p.enabled);
   };
 
   const filteredStaff = staff?.filter(s =>
@@ -307,6 +320,7 @@ export function RolesAndPermissions() {
                 <div className="flex p-1 bg-gray-100 dark:bg-white/5 rounded-2xl w-max md:w-fit">
                   {permissionGroups.map((group) => {
                     const Icon = group.icon;
+                    const isGroupActive = group.subGroups.some(isSubGroupEnabled);
                     return (
                       <button
                         key={group.id}
@@ -318,7 +332,8 @@ export function RolesAndPermissions() {
                           "flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-medium transition-all relative whitespace-nowrap",
                           activeTab === group.id
                             ? "bg-white dark:bg-white/10 text-primary shadow-sm"
-                            : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
+                          !isGroupActive && "opacity-40 grayscale-[0.5]"
                         )}
                       >
                         <Icon className={cn("w-4 h-4", activeTab === group.id ? "text-primary" : "text-gray-400")} />
@@ -341,20 +356,27 @@ export function RolesAndPermissions() {
               <div className="flex-1 overflow-y-auto -mx-4 px-4 md:mx-0 md:px-0">
                 {/* Sub Tabs */}
                 <div className="flex border-b border-gray-100 dark:border-white/5 mb-6">
-                  {permissionGroups.find(g => g.id === activeTab)?.subGroups.map((subGroup) => (
-                    <button
-                      key={subGroup.id}
-                      onClick={() => setActiveSubTab(subGroup.id)}
-                      className={cn(
-                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
-                        activeSubTab === subGroup.id
-                          ? "border-primary text-primary"
-                          : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      )}
-                    >
-                      {subGroup.label}
-                    </button>
-                  ))}
+                  {permissionGroups.find(g => g.id === activeTab)?.subGroups.map((subGroup) => {
+                    const isTabActive = isSubGroupEnabled(subGroup);
+                    return (
+                      <button
+                        key={subGroup.id}
+                        onClick={() => setActiveSubTab(subGroup.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm font-medium border-b-2 transition-all relative flex items-center gap-2",
+                          activeSubTab === subGroup.id
+                            ? "border-primary text-primary"
+                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
+                          !isTabActive && "opacity-40 grayscale-[0.5]"
+                        )}
+                      >
+                        {subGroup.label}
+                        {!isTabActive && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" title="Not Configured" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -366,43 +388,80 @@ export function RolesAndPermissions() {
                     transition={{ duration: 0.2 }}
                     className="grid grid-cols-1 xl:grid-cols-2 gap-4 pb-20 md:pb-0"
                   >
-                    {permissionGroups.find(g => g.id === activeTab)?.subGroups.find(sg => sg.id === activeSubTab)?.permissions.map((permission) => (
-                      <div
-                        key={permission.id}
-                        className={cn(
-                          "p-4 md:p-5 rounded-2xl border transition-all cursor-pointer group",
-                          permission.enabled
-                            ? "bg-white dark:bg-white/5 border-primary/20 shadow-sm"
-                            : "bg-gray-50/50 dark:bg-white/[0.02] border-gray-100 dark:border-white/5"
-                        )}
-                        onClick={() => togglePermission(activeTab, activeSubTab, permission.id)}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-bold text-gray-900 dark:text-white text-base truncate">
-                                {permission.name}
-                              </h4>
-                              {permission.enabled && (
-                                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                              )}
+                    {(() => {
+                      const currentSubGroup = permissionGroups.find(g => g.id === activeTab)?.subGroups.find(sg => sg.id === activeSubTab);
+                      const viewEnabled = currentSubGroup?.permissions.find(p => p.id.includes("_view"))?.enabled;
+
+                      return currentSubGroup?.permissions.map((permission) => {
+                        const isView = permission.id.includes("_view");
+                        const isNudged = nudgeViewId === permission.id;
+
+                        return (
+                          <div
+                            key={permission.id}
+                            className={cn(
+                              "p-4 md:p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden",
+                              permission.enabled
+                                ? "bg-white dark:bg-white/5 border-primary/20 shadow-sm"
+                                : "bg-gray-50/50 dark:bg-white/[0.02] border-gray-100 dark:border-white/5",
+                              !isView && !viewEnabled && "opacity-60 saturate-[0.8] brightness-[0.9]",
+                              isNudged && "ring-2 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse"
+                            )}
+                            onClick={() => togglePermission(activeTab, activeSubTab, permission.id)}
+                          >
+                            {/* Highlight effect for View permission */}
+                            {isView && permission.enabled && (
+                              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110" />
+                            )}
+
+                            <div className="flex items-start justify-between gap-4 relative z-10">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className={cn(
+                                    "font-bold text-base truncate",
+                                    isView ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"
+                                  )}>
+                                    {permission.name}
+                                  </h4>
+                                  {permission.enabled && (
+                                    <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                                  )}
+                                  {isView && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-primary/10 text-primary rounded-md">
+                                      Main
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">
+                                  {permission.description}
+                                </p>
+                              </div>
+                              <div className={cn(
+                                "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative flex items-center shrink-0",
+                                permission.enabled ? "bg-primary" : "bg-gray-200 dark:bg-white/10"
+                              )}>
+                                <div className={cn(
+                                  "w-4 h-4 bg-white rounded-full transition-transform duration-200 shadow-sm",
+                                  permission.enabled ? "translate-x-6" : "translate-x-0"
+                                )} />
+                              </div>
                             </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">
-                              {permission.description}
-                            </p>
+
+                            {/* Blue indicator for nudge */}
+                            <AnimatePresence>
+                              {isNudged && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  className="absolute inset-0 border-2 border-blue-500 rounded-2xl pointer-events-none"
+                                />
+                              )}
+                            </AnimatePresence>
                           </div>
-                          <div className={cn(
-                            "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative flex items-center shrink-0",
-                            permission.enabled ? "bg-primary" : "bg-gray-200 dark:bg-white/10"
-                          )}>
-                            <div className={cn(
-                              "w-4 h-4 bg-white rounded-full transition-transform duration-200 shadow-sm",
-                              permission.enabled ? "translate-x-6" : "translate-x-0"
-                            )} />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      });
+                    })()}
 
                     <div className="xl:col-span-2 p-4 md:p-6 mt-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-2xl flex gap-4 items-start">
                       <AlertCircle className="w-6 h-6 text-orange-500 shrink-0" />
@@ -440,6 +499,6 @@ export function RolesAndPermissions() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
