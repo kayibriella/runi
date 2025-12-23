@@ -7,7 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { toast } from "sonner";
 import { StaffCreator } from "./StaffCreator";
 
-export function AllWorkers() {
+export function AllStaff() {
   const staff = useQuery(api.staff.list);
   const deleteStaff = useMutation(api.staff.remove);
   const toggleStatus = useMutation(api.staff.toggleActiveStatus);

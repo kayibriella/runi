@@ -102,7 +102,7 @@ export function BusinessDashboard() {
         <Sidebar 
           activeModule={activeModule} 
           onModuleChange={(module) => {
-            setActiveModule(module);
+            setActiveModule(module as ModuleType);
             navigate(`/${module}`);
             // Close sidebar on mobile after selection
             if (window.innerWidth < 768) setSidebarOpen(false);

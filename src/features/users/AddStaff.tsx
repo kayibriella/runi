@@ -4,7 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 
-export function AddWorker() {
+export function AddStaff() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -33,7 +33,7 @@ export function AddWorker() {
       // In a real implementation, you would call a Convex mutation to create the user
       // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setSuccess("Worker added successfully!");
+      setSuccess("Staff member added successfully!");
       setFormData({
         fullName: "",
         email: "",
@@ -42,8 +42,8 @@ export function AddWorker() {
         password: "",
       });
     } catch (err) {
-      setError("Failed to add worker. Please try again.");
-      console.error("Error adding worker:", err);
+      setError("Failed to add staff member. Please try again.");
+      console.error("Error adding staff member:", err);
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +51,7 @@ export function AddWorker() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text mb-6">Add New Worker</h2>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text mb-6">Add New Staff Member</h2>
       
       {error && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg">
@@ -114,7 +114,7 @@ export function AddWorker() {
         
         <div className="flex justify-end">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Adding..." : "Add Worker"}
+            {isLoading ? "Adding..." : "Add Staff Member"}
           </Button>
         </div>
       </form>

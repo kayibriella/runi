@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AddWorker } from "./AddWorker";
-import { AllWorkers } from "./AllWorkers";
+import { AddStaff } from "./AddStaff";
+import { AllStaff } from "./AllStaff";
 import { RolesAndPermissions } from "./RolesAndPermissions";
 import { SubTabs } from "../../components/ui/SubTabs";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +41,7 @@ export function Users() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            {activeTab === "all" && <AllWorkers />}
+            {activeTab === "all" && <AllStaff />}
             {activeTab === "roles" && <RolesAndPermissions />}
           </motion.div>
         </AnimatePresence>

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Sidebar, MenuGroup } from "../../components/layout/Sidebar";
 import { Navbar } from "../../components/layout/Navbar";
-import { StaffPOS } from "./StaffPOS";
 import { StaffSettings } from "../settings/StaffSettings";
 import { useNavigate, useParams } from "react-router-dom";
 import { BarChart3, Settings as SettingsIcon, Menu, ShoppingCart, Package, Receipt, Shovel as ShieldAlert } from "lucide-react";
@@ -103,7 +102,32 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
     const renderModule = () => {
         switch (activeModule) {
             case "dashboard":
-                return <StaffPOS />;
+                return (
+                    <div className="pt-6 pb-12 max-w-[1920px] mx-auto min-h-screen">
+                        <div className="grid grid-cols-1 gap-6 mb-8">
+                            <div className="bg-white dark:bg-[#111] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+                                <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white mb-2">
+                                    Staff Dashboard
+                                </h1>
+                                <p className="text-gray-500 dark:text-gray-400 font-sans text-lg">
+                                    Welcome to your staff dashboard. Select a module from the menu to get started.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#111] rounded-[2.5rem] p-12 shadow-sm border border-gray-100 dark:border-white/5 min-h-[500px] flex flex-col items-center justify-center text-center group">
+                            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                                <ShoppingCart className="w-12 h-12 text-blue-500" />
+                            </div>
+                            <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white mb-4">
+                                Ready to get started?
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400 font-sans max-w-md mb-8">
+                                Select a module from the sidebar to access the corresponding functionality.
+                            </p>
+                        </div>
+                    </div>
+                );
             case "settings":
                 return <StaffSettings staffUser={staffUser} />;
             case "products":
@@ -111,7 +135,32 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
             case "cash-tracking":
                 return <RestrictedView />;
             default:
-                return <StaffPOS />;
+                return (
+                    <div className="pt-6 pb-12 max-w-[1920px] mx-auto min-h-screen">
+                        <div className="grid grid-cols-1 gap-6 mb-8">
+                            <div className="bg-white dark:bg-[#111] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+                                <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white mb-2">
+                                    Staff Dashboard
+                                </h1>
+                                <p className="text-gray-500 dark:text-gray-400 font-sans text-lg">
+                                    Welcome to your staff dashboard. Select a module from the menu to get started.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#111] rounded-[2.5rem] p-12 shadow-sm border border-gray-100 dark:border-white/5 min-h-[500px] flex flex-col items-center justify-center text-center group">
+                            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                                <ShoppingCart className="w-12 h-12 text-blue-500" />
+                            </div>
+                            <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white mb-4">
+                                Ready to get started?
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400 font-sans max-w-md mb-8">
+                                Select a module from the sidebar to access the corresponding functionality.
+                            </p>
+                        </div>
+                    </div>
+                );
         }
     };
 

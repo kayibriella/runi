@@ -10,8 +10,8 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 import { StaffLoginForm } from "./features/auth/StaffLoginForm";
-import { StaffDashboardLayout } from "./features/staff/StaffDashboardLayout";
-import { StaffDashboardSkeleton } from "./features/staff/StaffDashboardSkeleton";
+import { StaffDashboardLayout } from "./features/dashboard/StaffDashboardLayout";
+import { StaffDashboardSkeleton } from "./features/dashboard/StaffDashboardSkeleton";
 import NotFound from "./pages/NotFound";
 
 function AppContent() {
