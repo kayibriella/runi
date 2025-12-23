@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import { ReportPDF } from './ReportPDF';
 import {
   FileText,
@@ -14,7 +14,9 @@ import {
   Loader2,
   Users,
   LineChart,
-  Filter
+  Filter,
+  Eye,
+  X
 } from 'lucide-react';
 import {
   format,
@@ -34,6 +36,7 @@ type DateOption = 'today' | 'week' | 'month' | 'custom';
 
 export function Reports() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>('general');
   const [dateOption, setDateOption] = useState<DateOption>('month');
   const [customRange, setCustomRange] = useState({
@@ -56,20 +59,22 @@ export function Reports() {
   }, [dateOption, customRange]);
 
   // Specific Queries
+  const isFetchingData = isModalOpen || isPreviewOpen;
+
   const generalData = useQuery(api.reports.getGeneralReport,
-    (isModalOpen && selectedReportType === 'general') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
+    (isFetchingData && selectedReportType === 'general') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
   );
   const salesDataDetailed = useQuery(api.reports.getDetailedSalesReport,
-    (isModalOpen && selectedReportType === 'sales') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
+    (isFetchingData && selectedReportType === 'sales') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
   );
   const topSellingData = useQuery(api.reports.getTopSellingReport,
-    (isModalOpen && selectedReportType === 'top_selling') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
+    (isFetchingData && selectedReportType === 'top_selling') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
   );
   const debtorData = useQuery(api.reports.getDebtorReport,
-    (isModalOpen && selectedReportType === 'debtors') ? {} : 'skip'
+    (isFetchingData && selectedReportType === 'debtors') ? {} : 'skip'
   );
   const plData = useQuery(api.reports.getProfitLossReport,
-    (isModalOpen && selectedReportType === 'pl') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
+    (isFetchingData && selectedReportType === 'pl') ? { startDate: activeRange.from.getTime(), endDate: activeRange.to.getTime() } : 'skip'
   );
 
   const isLoading = (selectedReportType === 'general' && generalData === undefined) ||
@@ -80,7 +85,7 @@ export function Reports() {
 
   // PDF Data Preparation
   const pdfProps = useMemo(() => {
-    if (!isModalOpen) return null;
+    if (!isFetchingData) return null;
     const businessName = user?.businessName || 'Runi Business';
     const rangeStr = `${format(activeRange.from, 'PP')} - ${format(activeRange.to, 'PP')}`;
 
@@ -226,7 +231,7 @@ export function Reports() {
     }
 
     return null;
-  }, [selectedReportType, generalData, salesDataDetailed, topSellingData, debtorData, plData, user, activeRange, isModalOpen]);
+  }, [selectedReportType, generalData, salesDataDetailed, topSellingData, debtorData, plData, user, activeRange, isFetchingData]);
 
   const reportCards = [
     { id: 'general' as ReportType, title: "General Report", desc: "Overview of inventory and performance", icon: FileText, color: "from-blue-500 to-blue-600" },
@@ -309,24 +314,38 @@ export function Reports() {
             )}
           </div>
 
-          <div className="pt-8 border-t dark:border-white/5">
-            {isLoading ? (
-              <Button disabled className="w-full h-16 rounded-[1.25rem] opacity-50"><Loader2 className="animate-spin mr-3" /> Fetching Analytics...</Button>
-            ) : pdfProps ? (
-              <PDFDownloadLink
-                document={<ReportPDF {...pdfProps} />}
-                fileName={`${selectedReportType}-report.pdf`}
-                className="block"
+          <div className="pt-8 border-t dark:border-white/5 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setIsPreviewOpen(true);
+                }}
+                variant="secondary"
+                className="h-16 rounded-[1.25rem] text-lg font-bold"
+                disabled={isLoading || !pdfProps}
               >
-                {({ loading }) => (
-                  <Button className="w-full h-16 rounded-[1.25rem] shadow-2xl shadow-primary/20 text-xl font-bold" disabled={loading}>
-                    {loading ? <><Loader2 className="animate-spin mr-3" /> Packaging PDF...</> : <><Download className="mr-3" /> Download {selectedReportType.replace('_', ' ')}</>}
-                  </Button>
-                )}
-              </PDFDownloadLink>
-            ) : (
-              <Button disabled className="w-full h-16 rounded-[1.25rem] opacity-50">No Data for this Period</Button>
-            )}
+                <Eye className="mr-3 w-5 h-5" /> Preview
+              </Button>
+
+              {isLoading ? (
+                <Button disabled className="h-16 rounded-[1.25rem] opacity-50"><Loader2 className="animate-spin mr-3" /> Fetching...</Button>
+              ) : pdfProps ? (
+                <PDFDownloadLink
+                  document={<ReportPDF {...pdfProps} />}
+                  fileName={`${selectedReportType}-report.pdf`}
+                  className="block"
+                >
+                  {({ loading }) => (
+                    <Button className="w-full h-16 rounded-[1.25rem] shadow-2xl shadow-primary/20 text-lg font-bold" disabled={loading}>
+                      {loading ? <><Loader2 className="animate-spin mr-3" /> Packaging...</> : <><Download className="mr-3 w-5 h-5" /> Download</>}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              ) : (
+                <Button disabled className="h-16 rounded-[1.25rem] opacity-50">No Data</Button>
+              )}
+            </div>
           </div>
 
           <p className="text-center text-xs text-gray-400 font-medium">
@@ -334,6 +353,58 @@ export function Reports() {
           </p>
         </div>
       </Modal>
+
+      {/* Preview Modal */}
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsPreviewOpen(false)} />
+          <div className="relative w-full max-w-6xl h-[90vh] bg-white dark:bg-dark-card rounded-[2rem] shadow-2xl overflow-hidden flex flex-col scale-in-center">
+            <div className="p-6 border-b dark:border-white/5 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold dark:text-white capitalize">{selectedReportType.replace('_', ' ')} Preview</h2>
+                <p className="text-sm text-gray-500">{format(activeRange.from, 'PPP')} - {format(activeRange.to, 'PPP')}</p>
+              </div>
+              <button
+                onClick={() => setIsPreviewOpen(false)}
+                className="p-3 bg-gray-100 dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 bg-gray-50 dark:bg-dark-bg p-4 flex items-center justify-center">
+              {isLoading ? (
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                  <p className="text-gray-500 font-medium tracking-wide">Generating Preview...</p>
+                </div>
+              ) : pdfProps ? (
+                <PDFViewer className="w-full h-full rounded-xl border border-gray-200 dark:border-white/5" showToolbar={false}>
+                  <ReportPDF {...pdfProps} />
+                </PDFViewer>
+              ) : (
+                <p className="text-gray-500">No data available to preview</p>
+              )}
+            </div>
+
+            <div className="p-6 border-t dark:border-white/5 flex justify-end gap-4 bg-white dark:bg-dark-card">
+              <Button variant="secondary" onClick={() => setIsPreviewOpen(false)} className="rounded-xl px-8">Close</Button>
+              {pdfProps && (
+                <PDFDownloadLink
+                  document={<ReportPDF {...pdfProps} />}
+                  fileName={`${selectedReportType}-report.pdf`}
+                >
+                  {({ loading }) => (
+                    <Button disabled={loading} className="rounded-xl px-8 shadow-lg shadow-primary/20">
+                      {loading ? "Preparing..." : "Download PDF"}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-gray-900 rounded-[3rem] p-12 text-white relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-primary/20 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem] group-hover:scale-110 transition-transform duration-700" />
