@@ -25,4 +25,12 @@ dist-ssr
 .cursor
 
 
+# Environment variables and sensitive config
+.env.local
+.env
+.env.*.local
+
+# Qoder specific files
+.qoder/
+
 # Ignored for the template, you probably want to remove it:
