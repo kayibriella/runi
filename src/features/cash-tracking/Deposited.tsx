@@ -21,7 +21,12 @@ import {
   Loader2
 } from "lucide-react";
 
-export function Deposited() {
+interface DepositedProps {
+  canCreate?: boolean;
+  canDelete?: boolean;
+}
+
+export function Deposited({ canCreate = true, canDelete = true }: DepositedProps) {
   const user = useQuery(api.auth.loggedInUser);
   const deposits = useQuery(api.deposit.list);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,19 +168,21 @@ export function Deposited() {
                 className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-sans text-sm"
               />
             </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-display font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2"
-            >
-              <Plus className="h-5 w-5" />
-              <span>New Deposit</span>
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-display font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                <span>New Deposit</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <Table
-        headers={["Date & Time", "Amount", "Type", "Account Info", "Approval Status", "Receipt", "Actions"]}
+        headers={canDelete ? ["Date & Time", "Amount", "Type", "Account Info", "Approval Status", "Receipt", "Actions"] : ["Date & Time", "Amount", "Type", "Account Info", "Approval Status", "Receipt"]}
         count={filteredDeposits?.length}
       >
         {filteredDeposits && filteredDeposits.length > 0 ? (
@@ -206,10 +213,10 @@ export function Deposited() {
               </TableCell>
               <TableCell>
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${deposit.approval === "approved"
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                    : deposit.approval === "rejected"
-                      ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                      : "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                  : deposit.approval === "rejected"
+                    ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
                   }`}>
                   {deposit.approval === "approved" ? <CheckCircle className="w-3 h-3" /> :
                     deposit.approval === "rejected" ? <XCircle className="w-3 h-3" /> :
@@ -235,14 +242,16 @@ export function Deposited() {
                   </span>
                 )}
               </TableCell>
-              <TableCell>
-                <button
-                  onClick={() => handleDelete(deposit.deposit_id)}
-                  className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </TableCell>
+              {canDelete && (
+                <TableCell>
+                  <button
+                    onClick={() => handleDelete(deposit.deposit_id)}
+                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </TableCell>
+              )}
             </TableRow>
           ))
         ) : (
@@ -340,8 +349,8 @@ export function Deposited() {
               Proof of Payment
             </label>
             <div className={`mt-1 flex flex-col items-center justify-center px-6 py-6 border-2 border-dashed rounded-[2rem] transition-all ${receiptFile
-                ? "border-blue-400 bg-blue-500/5"
-                : "border-gray-200 dark:border-white/10 hover:border-blue-400 bg-white/30 dark:bg-black/10"
+              ? "border-blue-400 bg-blue-500/5"
+              : "border-gray-200 dark:border-white/10 hover:border-blue-400 bg-white/30 dark:bg-black/10"
               }`}>
               {receiptFile ? (
                 <div className="flex items-center gap-3 w-full">

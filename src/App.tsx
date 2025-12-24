@@ -92,6 +92,54 @@ function AppContent() {
                   }}
                 />
               } />
+              <Route path="products" element={
+                <StaffDashboardLayout
+                  staffUser={staffUser}
+                  staffToken={staffToken}
+                  onLogout={() => {
+                    localStorage.removeItem('staff_session_token');
+                    setStaffToken(null);
+                    setStaffUser(null);
+                    navigate('/staff-portal/login');
+                  }}
+                />
+              } />
+              <Route path="sales" element={
+                <StaffDashboardLayout
+                  staffUser={staffUser}
+                  staffToken={staffToken}
+                  onLogout={() => {
+                    localStorage.removeItem('staff_session_token');
+                    setStaffToken(null);
+                    setStaffUser(null);
+                    navigate('/staff-portal/login');
+                  }}
+                />
+              } />
+              <Route path="cash-tracking" element={
+                <StaffDashboardLayout
+                  staffUser={staffUser}
+                  staffToken={staffToken}
+                  onLogout={() => {
+                    localStorage.removeItem('staff_session_token');
+                    setStaffToken(null);
+                    setStaffUser(null);
+                    navigate('/staff-portal/login');
+                  }}
+                />
+              } />
+              <Route path="settings" element={
+                <StaffDashboardLayout
+                  staffUser={staffUser}
+                  staffToken={staffToken}
+                  onLogout={() => {
+                    localStorage.removeItem('staff_session_token');
+                    setStaffToken(null);
+                    setStaffUser(null);
+                    navigate('/staff-portal/login');
+                  }}
+                />
+              } />
               <Route path=":module" element={
                 <StaffDashboardLayout
                   staffUser={staffUser}

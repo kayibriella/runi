@@ -58,9 +58,9 @@ export function RolesAndPermissions() {
 
   const groupMasterStatus = useMemo(() => {
     return {
-      "product": !!permissionsMap["main_product"],
-      "sales": !!permissionsMap["main_sales"],
-      "cash-tracking": !!permissionsMap["main_cash-tracking"]
+      "product": !!permissionsMap["staff_product_master"],
+      "sales": !!permissionsMap["staff_sales_master"],
+      "cash-tracking": !!permissionsMap["staff_cash_tracking_master"]
     } as Record<string, boolean>;
   }, [permissionsMap]);
 
@@ -76,32 +76,27 @@ export function RolesAndPermissions() {
           id: "categories",
           label: "Categories",
           permissions: [
-            { id: "p4_view", name: "View Category", description: "Allow staff to see product categories", enabled: !!permissionsMap["p4_view"] },
-            { id: "p4_add", name: "Add Category", description: "Allow staff to create new product categories", enabled: !!permissionsMap["p4_add"] },
-            { id: "p4_edit", name: "Edit Category", description: "Allow staff to modify existing product categories", enabled: !!permissionsMap["p4_edit"] },
-            { id: "p4_delete", name: "Delete Category", description: "Allow staff to remove product categories", enabled: !!permissionsMap["p4_delete"] },
+            { id: "product_categories_view", name: "View Category", description: "Allow staff to see product categories", enabled: !!permissionsMap["product_categories_view"] },
+            { id: "product_categories_create", name: "Add Category", description: "Allow staff to create new product categories", enabled: !!permissionsMap["product_categories_create"] },
+            { id: "product_categories_edit", name: "Edit Category", description: "Allow staff to modify existing product categories", enabled: !!permissionsMap["product_categories_edit"] },
+            { id: "product_categories_delete", name: "Delete Category", description: "Allow staff to remove product categories", enabled: !!permissionsMap["product_categories_delete"] },
           ]
         },
         {
           id: "product-adding",
           label: "Product Adding",
           permissions: [
-            { id: "p2_view", name: "View Product List", description: "Allow staff to see all product entries", enabled: !!permissionsMap["p2_view"] },
-            { id: "p2_add", name: "Add New Product", description: "Allow staff to create new product entries", enabled: !!permissionsMap["p2_add"] },
-            { id: "p2_restock", name: "Restock", description: "Allow staff to add stock to existing products", enabled: !!permissionsMap["p2_restock"] },
-            { id: "p2_damaged", name: "Record Damaged", description: "Allow staff to record damaged stock", enabled: !!permissionsMap["p2_damaged"] },
-            { id: "p2_correct", name: "Stock Correction", description: "Allow staff to manually adjust stock levels", enabled: !!permissionsMap["p2_correct"] },
+            { id: "product_adding_view", name: "View Product List", description: "Allow staff to see all product entries", enabled: !!permissionsMap["product_adding_view"] },
+            { id: "product_adding_create", name: "Add New Product", description: "Allow staff to create new product entries", enabled: !!permissionsMap["product_adding_create"] },
           ]
         },
         {
           id: "live-stock",
           label: "Live Stock",
           permissions: [
-            { id: "p1_view", name: "View Stock", description: "Allow staff to see current stock levels", enabled: !!permissionsMap["p1_view"] },
-            { id: "p1_all", name: "All Products", description: "Allow staff to view all inventory items", enabled: !!permissionsMap["p1_all"] },
-            { id: "p1_low", name: "Low Stock", description: "Allow staff to view items with low stock levels", enabled: !!permissionsMap["p1_low"] },
-            { id: "p1_damaged", name: "Damaged Products", description: "Allow staff to view lists of damaged items", enabled: !!permissionsMap["p1_damaged"] },
-            { id: "p1_expiry", name: "Nearing Expiry", description: "Allow staff to view items close to expiration", enabled: !!permissionsMap["p1_expiry"] },
+            { id: "live_stock_view", name: "View Stock", description: "Allow staff to see current stock levels", enabled: !!permissionsMap["live_stock_view"] },
+            { id: "live_stock_edit", name: "Edit Stock", description: "Allow staff to modify stock levels", enabled: !!permissionsMap["live_stock_edit"] },
+            { id: "live_stock_delete", name: "Delete Stock", description: "Allow staff to remove stock entries", enabled: !!permissionsMap["live_stock_delete"] },
           ]
         }
       ]
@@ -115,25 +110,25 @@ export function RolesAndPermissions() {
           id: "add-sale",
           label: "Add Sale",
           permissions: [
-            { id: "s5_view", name: "Allow Add Sale", description: "Allow staff to access the sale creation interface", enabled: !!permissionsMap["s5_view"] },
+            { id: "add_sales_view", name: "Allow Add Sale", description: "Allow staff to access the sale creation interface", enabled: !!permissionsMap["add_sales_view"] },
           ]
         },
         {
           id: "manage-sales",
           label: "Manage Sales",
           permissions: [
-            { id: "s1_view", name: "View Sales Config", description: "Allow staff to see sales configurations", enabled: !!permissionsMap["s1_view"] },
-            { id: "s1_edit", name: "Edit Sales Config", description: "Allow staff to modify sales configurations", enabled: !!permissionsMap["s1_edit"] },
-            { id: "s1_delete", name: "Delete Sales Config", description: "Allow staff to remove sales configurations", enabled: !!permissionsMap["s1_delete"] },
+            { id: "manage_sales_view", name: "View Sales", description: "Allow staff to see sales records", enabled: !!permissionsMap["manage_sales_view"] },
+            { id: "manage_sales_edit", name: "Edit Sales", description: "Allow staff to modify sales records", enabled: !!permissionsMap["manage_sales_edit"] },
+            { id: "manage_sales_delete", name: "Delete Sales", description: "Allow staff to remove sales records", enabled: !!permissionsMap["manage_sales_delete"] },
           ]
         },
         {
           id: "audit-sales",
           label: "Audit Sales",
           permissions: [
-            { id: "s4_view", name: "View Sales Audit", description: "Allow staff to see sales validation history", enabled: !!permissionsMap["s4_view"] },
-            { id: "s4_confirm", name: "Confirm Sale", description: "Allow staff to confirm and validate sales", enabled: !!permissionsMap["s4_confirm"] },
-            { id: "s4_reject", name: "Reject Sale", description: "Allow staff to reject or cancel sales", enabled: !!permissionsMap["s4_reject"] },
+            { id: "audit_sales_view", name: "View Sales Audit", description: "Allow staff to see sales validation history", enabled: !!permissionsMap["audit_sales_view"] },
+            { id: "audit_sales_confirm", name: "Confirm Sale", description: "Allow staff to confirm and validate sales", enabled: !!permissionsMap["audit_sales_confirm"] },
+            { id: "audit_sales_reject", name: "Reject Sale", description: "Allow staff to reject or cancel sales", enabled: !!permissionsMap["audit_sales_reject"] },
           ]
         }
       ]
@@ -147,17 +142,16 @@ export function RolesAndPermissions() {
           id: "deposited",
           label: "Deposited",
           permissions: [
-            { id: "c1_view", name: "View Deposited", description: "Allow staff to see deposited cash records", enabled: !!permissionsMap["c1_view"] },
-            { id: "c1_create", name: "Create Deposition", description: "Allow staff to record new cash depositions", enabled: !!permissionsMap["c1_create"] },
-            { id: "c1_edit", name: "Edit Deposited", description: "Allow staff to modify deposited cash records", enabled: !!permissionsMap["c1_edit"] },
-            { id: "c1_delete", name: "Delete Deposited", description: "Allow staff to remove deposited cash records", enabled: !!permissionsMap["c1_delete"] },
+            { id: "deposited_view", name: "View Deposited", description: "Allow staff to see deposited cash records", enabled: !!permissionsMap["deposited_view"] },
+            { id: "deposited_create", name: "Create Deposition", description: "Allow staff to record new cash depositions", enabled: !!permissionsMap["deposited_create"] },
+            { id: "deposited_delete", name: "Delete Deposited", description: "Allow staff to remove deposited cash records", enabled: !!permissionsMap["deposited_delete"] },
           ]
         },
         {
           id: "debtor",
           label: "Debtor",
           permissions: [
-            { id: "c2_view", name: "View Debtors", description: "Allow staff to see the list of debtors", enabled: !!permissionsMap["c2_view"] },
+            { id: "debtors_view", name: "View Debtors", description: "Allow staff to see the list of debtors", enabled: !!permissionsMap["debtors_view"] },
           ]
         }
       ]
@@ -171,7 +165,12 @@ export function RolesAndPermissions() {
     if (!selectedStaffId) return;
 
     const newStatus = !groupMasterStatus[groupId];
-    const permissionKey = `main_${groupId}`;
+    const masterKeyMap: Record<string, string> = {
+      "product": "staff_product_master",
+      "sales": "staff_sales_master",
+      "cash-tracking": "staff_cash_tracking_master"
+    };
+    const permissionKey = masterKeyMap[groupId];
 
     try {
       await updatePermission({

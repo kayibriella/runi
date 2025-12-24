@@ -1,15 +1,30 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkPermission } from "./permissions";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const list = query({
   args: {
     category_id: v.optional(v.id("productcategory")),
     search: v.optional(v.string()),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    let userId;
+    try {
+      // Staff needs EITHER product_adding_view OR live_stock_view to see products usually.
+      // Let's assume 'product_adding_view' is sufficient for the list.
+      // Or we can check if they have EITHER.
+      // checkPermission throws. 
+      // We'll check 'product_adding_view' first.
+      userId = await checkPermission(ctx, "product_adding_view", args.staffToken);
+    } catch {
+      try {
+        userId = await checkPermission(ctx, "live_stock_view", args.staffToken);
+      } catch {
+        return []; // Assuming access denied means empty list
+      }
+    }
 
     let products;
 
@@ -58,13 +73,16 @@ export const create = mutation({
     description: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     sku: v.optional(v.string()),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "product_adding_create", args.staffToken);
+
+    // Filter out staffToken from args so we don't try to insert it into products table
+    const { staffToken, ...productData } = args;
 
     return await ctx.db.insert("products", {
-      ...args,
+      ...productData,
       user_id: userId,
       updated_at: Date.now(),
     });
@@ -91,12 +109,12 @@ export const update = mutation({
     description: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     sku: v.optional(v.string()),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "live_stock_edit", args.staffToken);
 
-    const { id, ...updates } = args;
+    const { id, staffToken, ...updates } = args;
 
     // Verify ownership
     const product = await ctx.db.get(id);
@@ -112,10 +130,17 @@ export const update = mutation({
 });
 
 export const getLowStock = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    // Both product adding and live stock view should see this probably
+    let userId;
+    try {
+      userId = await checkPermission(ctx, "live_stock_view", args.staffToken);
+    } catch {
+      return [];
+    }
 
     const products = await ctx.db
       .query("products")
@@ -128,10 +153,16 @@ export const getLowStock = query({
 
 // Get damaged products
 export const getDamagedProducts = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    let userId;
+    try {
+      userId = await checkPermission(ctx, "live_stock_view", args.staffToken);
+    } catch {
+      return [];
+    }
 
     const damagedProducts = await ctx.db
       .query("damaged_products")
@@ -158,10 +189,16 @@ export const getDamagedProducts = query({
 
 // Get stock movements
 export const getStockMovements = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    let userId;
+    try {
+      userId = await checkPermission(ctx, "live_stock_view", args.staffToken);
+    } catch {
+      return [];
+    }
 
     const movements = await ctx.db
       .query("stock_movements")
@@ -188,10 +225,16 @@ export const getStockMovements = query({
 
 // Get restock records
 export const getRestockRecords = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    let userId;
+    try {
+      userId = await checkPermission(ctx, "live_stock_view", args.staffToken);
+    } catch {
+      return [];
+    }
 
     const restocks = await ctx.db
       .query("restock")
@@ -217,10 +260,12 @@ export const getRestockRecords = query({
 });
 
 export const deleteProduct = mutation({
-  args: { id: v.id("products") },
+  args: {
+    id: v.id("products"),
+    staffToken: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "live_stock_delete", args.staffToken);
 
     const product = await ctx.db.get(args.id);
     if (!product || product.user_id !== userId) {
@@ -233,9 +278,9 @@ export const deleteProduct = mutation({
 
 // Approve product deletion request
 export const approveProductDeletion = mutation({
-  args: { 
+  args: {
     movement_id: v.string(),
-    product_id: v.id("products") 
+    product_id: v.id("products")
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -246,7 +291,7 @@ export const approveProductDeletion = mutation({
       .withIndex("by_user", q => q.eq("user_id", userId))
       .filter(q => q.eq(q.field("movement_id"), args.movement_id))
       .unique();
-      
+
     if (!movement) {
       throw new Error("Deletion request not found");
     }
@@ -261,14 +306,14 @@ export const approveProductDeletion = mutation({
     if (product && product.user_id === userId) {
       await ctx.db.delete(args.product_id);
     }
-    
+
     return args.product_id;
   },
 });
 
 // Reject product deletion request
 export const rejectProductDeletion = mutation({
-  args: { 
+  args: {
     movement_id: v.string()
   },
   handler: async (ctx, args) => {
@@ -280,7 +325,7 @@ export const rejectProductDeletion = mutation({
       .withIndex("by_user", q => q.eq("user_id", userId))
       .filter(q => q.eq(q.field("movement_id"), args.movement_id))
       .unique();
-      
+
     if (!movement) {
       throw new Error("Deletion request not found");
     }
@@ -289,16 +334,16 @@ export const rejectProductDeletion = mutation({
       status: "rejected",
       updated_at: Date.now(),
     });
-    
+
     return args.movement_id;
   },
 });
 
 // Approve product edit request
 export const approveProductEdit = mutation({
-  args: { 
+  args: {
     movement_id: v.string(),
-    product_id: v.id("products") 
+    product_id: v.id("products")
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -309,7 +354,7 @@ export const approveProductEdit = mutation({
       .withIndex("by_user", q => q.eq("user_id", userId))
       .filter(q => q.eq(q.field("movement_id"), args.movement_id))
       .unique();
-      
+
     if (!movement) {
       throw new Error("Edit request not found");
     }
@@ -322,7 +367,7 @@ export const approveProductEdit = mutation({
 
     // Prepare update object based on the field changed
     const updateObj: any = {};
-    
+
     switch (movement.field_changed) {
       case 'name':
         updateObj.name = typeof movement.new_value === 'string' ? movement.new_value : movement.new_value.toString();
@@ -367,14 +412,14 @@ export const approveProductEdit = mutation({
       status: "completed",
       updated_at: Date.now(),
     });
-    
+
     return args.product_id;
   },
 });
 
 // Reject product edit request
 export const rejectProductEdit = mutation({
-  args: { 
+  args: {
     movement_id: v.string(),
     rejection_reason: v.optional(v.string())
   },
@@ -387,7 +432,7 @@ export const rejectProductEdit = mutation({
       .withIndex("by_user", q => q.eq("user_id", userId))
       .filter(q => q.eq(q.field("movement_id"), args.movement_id))
       .unique();
-      
+
     if (!movement) {
       throw new Error("Edit request not found");
     }
@@ -404,7 +449,7 @@ export const rejectProductEdit = mutation({
     }
 
     await ctx.db.patch(movement._id, updateData);
-    
+
     return args.movement_id;
   },
 });
@@ -430,7 +475,7 @@ export const restock = mutation({
     // Update product quantities
     const newQuantityBox = product.quantity_box + args.boxes_amount;
     const newQuantityKg = product.quantity_kg + args.kg_amount;
-    
+
     // Calculate days left until new expiry date
     const expiryDate = new Date(args.expiry_date);
     const today = new Date();

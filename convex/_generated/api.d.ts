@@ -16,6 +16,8 @@ import type * as expenses from "../expenses.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as initPermissions from "../initPermissions.js";
+import type * as permissions from "../permissions.js";
 import type * as productCategories from "../productCategories.js";
 import type * as products from "../products.js";
 import type * as reports from "../reports.js";
@@ -40,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   folders: typeof folders;
   http: typeof http;
+  initPermissions: typeof initPermissions;
+  permissions: typeof permissions;
   productCategories: typeof productCategories;
   products: typeof products;
   reports: typeof reports;

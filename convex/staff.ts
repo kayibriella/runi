@@ -203,9 +203,15 @@ export const login = mutation({
             updated_at: Date.now(),
         });
 
+        // Fetch permissions
+        const permissions = await ctx.db
+            .query("staff_permissions")
+            .withIndex("by_staff", (q) => q.eq("staff_id", staff._id))
+            .collect();
+
         // Safe return (exclude password)
         const { password, ...staffData } = staff;
-        return { ...staffData, session_token: sessionToken };
+        return { ...staffData, session_token: sessionToken, permissions };
     },
 });
 
@@ -224,8 +230,13 @@ export const validateSession = query({
             return null; // Expired
         }
 
+        const permissions = await ctx.db
+            .query("staff_permissions")
+            .withIndex("by_staff", (q) => q.eq("staff_id", staff._id))
+            .collect();
+
         const { password, ...staffData } = staff;
-        return staffData;
+        return { ...staffData, permissions };
     },
 });
 

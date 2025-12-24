@@ -7,6 +7,9 @@ import { BarChart3, Settings as SettingsIcon, Menu, ShoppingCart, Package, Recei
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "../../lib/utils";
+import { StaffProducts } from "../staff/StaffProducts";
+import { StaffSales } from "../staff/StaffSales";
+import { StaffCashTracking } from "../staff/StaffCashTracking";
 
 interface StaffDashboardLayoutProps {
     staffUser: any;
@@ -39,15 +42,15 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
     const navigate = useNavigate();
     const { module } = useParams<{ module: string }>();
 
-    const staffPermissions = useQuery(api.staff.getStaffPermissionsByToken, staffToken ? { token: staffToken } : "skip");
-
     const permissionsMap = useMemo(() => {
         const map: Record<string, boolean> = {};
-        staffPermissions?.forEach(p => {
-            map[p.permission_key] = p.is_enabled;
-        });
+        if (staffUser?.permissions && Array.isArray(staffUser.permissions)) {
+            staffUser.permissions.forEach((p: any) => {
+                map[p.permission_key] = p.is_enabled;
+            });
+        }
         return map;
-    }, [staffPermissions]);
+    }, [staffUser]);
 
     // Staff Menu Configuration
     const staffMenuGroups = useMemo<MenuGroup[]>(() => {
@@ -60,13 +63,13 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
             }
         ];
 
-        if (permissionsMap["main_product"]) {
+        if (permissionsMap["staff_product_master"]) {
             groups[0].items.push({ id: "products", label: "Products", icon: Package });
         }
-        if (permissionsMap["main_sales"]) {
+        if (permissionsMap["staff_sales_master"]) {
             groups[0].items.push({ id: "sales", label: "Sales", icon: ShoppingCart });
         }
-        if (permissionsMap["main_cash-tracking"]) {
+        if (permissionsMap["staff_cash_tracking_master"]) {
             groups[0].items.push({ id: "cash-tracking", label: "Cash Tracking", icon: BarChart3 });
         }
 
@@ -131,9 +134,11 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
             case "settings":
                 return <StaffSettings staffUser={staffUser} />;
             case "products":
+                return permissionsMap["staff_product_master"] ? <StaffProducts /> : <RestrictedView />;
             case "sales":
+                return permissionsMap["staff_sales_master"] ? <StaffSales /> : <RestrictedView />;
             case "cash-tracking":
-                return <RestrictedView />;
+                return permissionsMap["staff_cash_tracking_master"] ? <StaffCashTracking /> : <RestrictedView />;
             default:
                 return (
                     <div className="pt-6 pb-12 max-w-[1920px] mx-auto min-h-screen">
@@ -170,8 +175,9 @@ export function StaffDashboardLayout({ staffUser, staffToken, onLogout }: StaffD
             { id: "dashboard", label: "Dashboard", icon: ShoppingCart },
         ];
 
-        if (permissionsMap["main_product"]) items.push({ id: "products", label: "Products", icon: Package });
-        if (permissionsMap["main_sales"]) items.push({ id: "sales", label: "Sales", icon: ShoppingCart });
+        if (permissionsMap["staff_product_master"]) items.push({ id: "products", label: "Products", icon: Package });
+        if (permissionsMap["staff_sales_master"]) items.push({ id: "sales", label: "Sales", icon: ShoppingCart });
+        if (permissionsMap["staff_cash_tracking_master"]) items.push({ id: "cash-tracking", label: "Cash", icon: BarChart3 });
 
         items.push({ id: "settings", label: "Settings", icon: SettingsIcon });
         return items;

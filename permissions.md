@@ -1,4 +1,4 @@
-see my describtion "# Database Schema: Roles and Permissions
+# Database Schema: Roles and Permissions
 
 This document outlines the database structure required to support the **Permissions** system, specifically matching the UI structure of the "Permissions" sub-tab in the Staff management section.
 
