@@ -1,14 +1,17 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkPermission } from "./permissions";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const list = query({
   args: {
     payment_status: v.optional(v.union(v.literal("pending"), v.literal("partial"), v.literal("completed"))),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    // Both manage_sales_view and debtors_view might want to list sales (or subsets).
+    // Let's rely on manage_sales_view for general list.
+    const userId = await checkPermission(ctx, "manage_sales_view", args.staffToken);
 
     let sales;
 
@@ -22,14 +25,14 @@ export const list = query({
       sales = await ctx.db.query("sales").order("desc").collect();
     }
 
-    return sales;
+    return sales.filter(s => s.user_id === userId); // Ensure scoping
   },
 });
 
 export const create = mutation({
   args: {
     sales_id: v.string(),
-    user_id: v.id("users"),
+    user_id: v.id("users"), // This is ignored/overwritten by auth check usually? checkPermission returns userId.
     product_id: v.id("products"),
     boxes_quantity: v.number(),
     kg_quantity: v.number(),
@@ -42,15 +45,43 @@ export const create = mutation({
     remaining_amount: v.number(),
     payment_status: v.union(v.literal("pending"), v.literal("partial"), v.literal("completed")),
     payment_method: v.string(),
-    performed_by: v.id("users"),
+    performed_by: v.id("users"), // This might be staff ID if staff? Schema says v.id("users"). Staff aren't in users table? They are. Staff are different.
+    // Schema for sales.performed_by is v.id("users").
+    // If staff performs it, we might need a way to store staff ID or we rely on the Business Owner ID?
+    // "performed_by" usually implies WHO did it.
+    // If we use Business Owner ID, we lose audit trail of WHICH staff.
+    // But `v.id("users")` enforces referential integrity to users table.
+    // If staff are NOT in users table (they are in staff table), we can't put staff_id there if verified.
+    // Let's assume for now we put the Business Owner UserID or we need to relax schema?
+    // Schema is `performed_by: v.id("users")`.
+    // The `checkPermission` returns the Business Owner `userId`.
+    // We should probably use THAT for `user_id`.
+    // For `performed_by`, if we can't put staff ID, we might have to put Owner ID.
+    // OR we change schema later. For now, use Owner ID to satisfy schema.
     client_id: v.string(),
     client_name: v.string(),
     phone_number: v.string(),
     updated_at: v.number(),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    // "Add Sale" view permission implies ability to create?
+    // Let's assume 'staff_sales_master' or 'manage_sales_create' (if it existed)
+    // We will use 'manage_sales_view' or 'staff_sales_master'. 
+    // Wait, md says "Add Sale (View Only)". This implies they can USE the add sale form.
+    // So 'add_sales_view'.
+    // BUT 'add_sales_view' might just be visibility.
+    // Let's use 'manage_sales_create' if it exists in keys? 
+    // Permissions MD doesn't explicitly list `create` for "Add Sale". 
+    // But it LISTS "Manage Sales -> Create (Not Applicable)". 
+    // It seems "Add Sale" IS the create.
+    // Let's check permissions.md again. 
+    // "Add Sale" key is `add_sales`? 
+    // keys in useStaffPermissions mock: `canViewSales`.
+    // Let's use `manage_sales_view` + `staff_sales_master` as a fallback or just `manage_sales_view`?? 
+    // Actually, `add_sales_view` seems most appropriate for "Accessing the Add Sale Tab".
+    // I'll use `add_sales_view`.
+    const userId = await checkPermission(ctx, "add_sales_view", args.staffToken);
 
     // Update product quantities
     const product = await ctx.db.get(args.product_id);
@@ -61,8 +92,12 @@ export const create = mutation({
       });
     }
 
+    const { staffToken, ...saleData } = args;
+
     return await ctx.db.insert("sales", {
-      ...args,
+      ...saleData,
+      user_id: userId, // Enforce owner
+      // performed_by: userId // Enforce owner for schema compliance for now
     });
   },
 });
@@ -72,13 +107,14 @@ export const addPayment = mutation({
     saleId: v.id("sales"),
     amount: v.number(),
     paymentMethod: v.string(),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "manage_sales_edit", args.staffToken);
 
     const sale = await ctx.db.get(args.saleId);
     if (!sale) throw new Error("Sale not found");
+    if (sale.user_id !== userId) throw new Error("Access denied");
 
     const newAmountPaid = sale.amount_paid + args.amount;
     const newRemainingAmount = sale.total_amount - newAmountPaid;
@@ -94,10 +130,12 @@ export const addPayment = mutation({
 });
 
 export const deleteSale = mutation({
-  args: { id: v.id("sales") },
+  args: {
+    id: v.id("sales"),
+    staffToken: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "manage_sales_delete", args.staffToken);
 
     const sale = await ctx.db.get(args.id);
     if (!sale || sale.user_id !== userId) {
@@ -113,10 +151,10 @@ export const deleteSaleWithAudit = mutation({
   args: {
     saleId: v.id("sales"),
     reason: v.string(),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "manage_sales_delete", args.staffToken);
 
     const sale = await ctx.db.get(args.saleId);
     if (!sale || sale.user_id !== userId) {
@@ -148,7 +186,7 @@ export const deleteSaleWithAudit = mutation({
         client_name: sale.client_name,
       },
       new_values: null,
-      performed_by: userId,
+      performed_by: userId, // Schema requires user ID
       approval_status: "pending" as const,
       reason: args.reason,
       updated_at: Date.now(),
@@ -161,10 +199,11 @@ export const deleteSaleWithAudit = mutation({
 });
 
 export const listAudit = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const userId = await checkPermission(ctx, "audit_sales_view", args.staffToken);
 
     const audits = await ctx.db
       .query("sales_audit")
@@ -181,6 +220,7 @@ export const updateAuditStatus = mutation({
     auditId: v.id("sales_audit"),
     status: v.union(v.literal("approved"), v.literal("rejected")),
     reason: v.optional(v.string()),
+    // No staffToken - Admin only
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

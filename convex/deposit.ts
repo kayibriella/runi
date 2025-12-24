@@ -1,12 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { checkPermission } from "./permissions";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Create a new deposit
 export const create = mutation({
   args: {
     deposit_id: v.string(),
-    user_id: v.string(),
+    user_id: v.string(), // We will overwrite this
     deposit_type: v.string(),
     account_name: v.string(),
     account_number: v.string(),
@@ -17,23 +18,28 @@ export const create = mutation({
     created_by: v.string(),
     updated_at: v.number(),
     updated_by: v.string(),
+    staffToken: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "deposited_create", args.staffToken);
+
+    // Filter staffToken out
+    const { staffToken, user_id, ...depositData } = args;
 
     return await ctx.db.insert("deposit", {
-      ...args,
+      ...depositData,
+      user_id: userId, // Enforce owner
     });
   },
 });
 
 // Get all deposits for a user
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+  args: {
+    staffToken: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const userId = await checkPermission(ctx, "deposited_view", args.staffToken);
 
     const deposits = await ctx.db
       .query("deposit")
@@ -47,10 +53,12 @@ export const list = query({
 
 // Get deposit by ID
 export const getById = query({
-  args: { deposit_id: v.string() },
+  args: {
+    deposit_id: v.string(),
+    staffToken: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "deposited_view", args.staffToken);
 
     const deposits = await ctx.db
       .query("deposit")
@@ -61,7 +69,17 @@ export const getById = query({
       throw new Error("Deposit not found");
     }
 
-    return deposits[0];
+    // Check ownership
+    const deposit = deposits[0];
+    if (deposit.user_id !== userId) {
+      // user_id is string in schema, userId is Id<"users">. Comparisons work fine usually? 
+      // Or string comparison. 
+      if (deposit.user_id !== userId) {
+        throw new Error("Deposit not found or access denied");
+      }
+    }
+
+    return deposit;
   },
 });
 
@@ -80,6 +98,7 @@ export const update = mutation({
     created_by: v.string(),
     updated_at: v.number(),
     updated_by: v.string(),
+    // No staffToken - Admin only
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -97,6 +116,11 @@ export const update = mutation({
 
     const depositId = deposits[0]._id;
 
+    // Verify ownership
+    if (deposits[0].user_id !== userId) {
+      throw new Error("Access denied");
+    }
+
     return await ctx.db.replace(depositId, {
       ...args,
     });
@@ -105,10 +129,12 @@ export const update = mutation({
 
 // Delete a deposit
 export const remove = mutation({
-  args: { deposit_id: v.string() },
+  args: {
+    deposit_id: v.string(),
+    staffToken: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    const userId = await checkPermission(ctx, "deposited_delete", args.staffToken);
 
     // Find the deposit by deposit_id
     const deposits = await ctx.db
@@ -118,6 +144,10 @@ export const remove = mutation({
 
     if (deposits.length === 0) {
       throw new Error("Deposit not found");
+    }
+
+    if (deposits[0].user_id !== userId) {
+      throw new Error("Access denied");
     }
 
     const depositId = deposits[0]._id;

@@ -6,15 +6,20 @@ import { Modal } from "../../components/ui/Modal";
 import { Input } from "../../components/ui/Input";
 import { toast } from "sonner";
 
-export function ManageSales() {
+interface ManageSalesProps {
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export function ManageSales({ canEdit = true, canDelete = true }: ManageSalesProps) {
   // Fetch sales data
   const sales = useQuery(api.sales.list, {}) || [];
   const products = useQuery(api.products.list, {}) || [];
-  
+
   // Mutations
   const deleteSaleWithAudit = useMutation(api.sales.deleteSaleWithAudit);
   const updateSale = useMutation(api.sales.updateSale);
-  
+
   // State for edit modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentSale, setCurrentSale] = useState<any>(null);
@@ -24,25 +29,25 @@ export function ManageSales() {
     payment_method: "",
     reason: ""
   });
-  
+
   // State for delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
   const [deleteErrors, setDeleteErrors] = useState<Record<string, string>>({});
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Helper function to format timestamp
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleString();
   };
-  
+
   // Helper function to get product name by ID
   const getProductName = (productId: string) => {
     const product = products.find(p => p._id === productId);
     return product ? product.name : "Unknown Product";
   };
-  
+
   // Helper function to format status
   const formatStatus = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -52,7 +57,7 @@ export function ManageSales() {
     };
     return statusMap[status] || status;
   };
-  
+
   // Handle delete sale
   const handleDelete = (saleId: string) => {
     const sale = sales.find((s: any) => s._id === saleId);
@@ -63,20 +68,20 @@ export function ManageSales() {
       setIsDeleteModalOpen(true);
     }
   };
-  
+
   // Handle delete form submission
   const handleDeleteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!deleteReason.trim()) {
       setDeleteErrors({ reason: "Reason is required" });
       return;
     }
-    
+
     try {
-      await deleteSaleWithAudit({ 
-        saleId: currentSale._id, 
-        reason: deleteReason 
+      await deleteSaleWithAudit({
+        saleId: currentSale._id,
+        reason: deleteReason
       });
       toast.success("Sale deletion request submitted for approval!");
       setIsDeleteModalOpen(false);
@@ -85,13 +90,13 @@ export function ManageSales() {
       toast.error("Failed to request sale deletion. Please try again.");
     }
   };
-  
+
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
     setDeleteReason("");
     setDeleteErrors({});
   };
-  
+
   const handleDeleteReasonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDeleteReason(e.target.value);
     if (deleteErrors.reason) {
@@ -102,7 +107,7 @@ export function ManageSales() {
       });
     }
   };
-  
+
   const handleEditClick = (sale: any) => {
     setCurrentSale(sale);
     setEditFormData({
@@ -114,14 +119,14 @@ export function ManageSales() {
     setErrors({});
     setIsEditModalOpen(true);
   };
-  
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setEditFormData(prev => ({
       ...prev,
       [name]: name.includes('quantity') ? Number(value) : value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -130,7 +135,7 @@ export function ManageSales() {
       });
     }
   };
-  
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (editFormData.boxes_quantity < 0) newErrors.boxes_quantity = "Cannot be negative";
@@ -139,11 +144,11 @@ export function ManageSales() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     try {
       await updateSale({
         saleId: currentSale._id,
@@ -159,13 +164,13 @@ export function ManageSales() {
       toast.error("Failed to update sale. Please try again.");
     }
   };
-  
+
   return (
     <div className="bg-white/50 dark:bg-dark-card/50 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-dark-border/50 p-6 shadow-xl">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-display font-bold text-gray-900 dark:text-dark-text tracking-tight">Manage Sales</h2>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
           <thead>
@@ -175,7 +180,9 @@ export function ManageSales() {
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest font-display">Price (Box/Kg)</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest font-display">Total Amount</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest font-display">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest font-display">Actions</th>
+              {(canEdit || canDelete) && (
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest font-display">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-dark-border">
@@ -199,22 +206,28 @@ export function ManageSales() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full font-display
-                      ${sale.payment_status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' : 
-                        sale.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400' : 
-                        'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
+                      ${sale.payment_status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' :
+                        sale.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400' :
+                          'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
                       {formatStatus(sale.payment_status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <Button variant="secondary" size="sm" onClick={() => handleEditClick(sale)} className="rounded-xl">
-                        Edit
-                      </Button>
-                      <Button variant="danger" size="sm" onClick={() => handleDelete(sale._id)} className="rounded-xl">
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
+                  {(canEdit || canDelete) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        {canEdit && (
+                          <Button variant="secondary" size="sm" onClick={() => handleEditClick(sale)} className="rounded-xl">
+                            Edit
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button variant="danger" size="sm" onClick={() => handleDelete(sale._id)} className="rounded-xl">
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
@@ -227,7 +240,7 @@ export function ManageSales() {
           </tbody>
         </table>
       </div>
-      
+
       {/* Edit Sale Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Sale">
         {currentSale && (
@@ -236,7 +249,7 @@ export function ManageSales() {
               <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Editing Record for</p>
               <h4 className="text-xl font-bold text-gray-900 dark:text-white font-display tracking-tight">{getProductName(currentSale.product_id)}</h4>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="Boxes Quantity"
@@ -255,7 +268,7 @@ export function ManageSales() {
                 error={errors.kg_quantity}
               />
             </div>
-            
+
             <div className="w-full">
               <label className="block text-sm font-semibold text-gray-700 dark:text-dark-text mb-2 ml-1 font-display tracking-tight">Payment Method</label>
               <select
@@ -272,7 +285,7 @@ export function ManageSales() {
                 <option value="Cheque">Cheque</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-dark-text mb-2 ml-1 font-display tracking-tight">Reason for Edit <span className="text-red-500">*</span></label>
               <textarea
@@ -285,7 +298,7 @@ export function ManageSales() {
               />
               {errors.reason && <p className="mt-2 ml-1 text-xs font-medium text-red-500">{errors.reason}</p>}
             </div>
-            
+
             <div className="flex gap-3 pt-4">
               <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)} className="flex-1">Cancel</Button>
               <Button type="submit" variant="primary" className="flex-1">Update Record</Button>
@@ -293,7 +306,7 @@ export function ManageSales() {
           </form>
         )}
       </Modal>
-      
+
       {/* Delete Sale Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Delete Sale">
         {currentSale && (
@@ -306,7 +319,7 @@ export function ManageSales() {
             <p className="text-sm text-gray-600 dark:text-gray-400 px-1 font-display">
               Deletion requires administrative approval. Please provide a detailed reason.
             </p>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-dark-text mb-2 ml-1 font-display tracking-tight">Reason for Deletion <span className="text-red-500">*</span></label>
               <textarea
@@ -318,7 +331,7 @@ export function ManageSales() {
               />
               {deleteErrors.reason && <p className="mt-2 ml-1 text-xs font-medium text-red-500">{deleteErrors.reason}</p>}
             </div>
-            
+
             <div className="flex gap-3 pt-4">
               <Button type="button" variant="secondary" onClick={closeDeleteModal} className="flex-1">Cancel</Button>
               <Button type="submit" variant="danger" className="flex-1">Request Deletion</Button>

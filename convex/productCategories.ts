@@ -1,17 +1,15 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { checkPermission } from "./permissions";
 
 // Create a new product category
 export const create = mutation({
     args: {
         category_name: v.string(),
+        staffToken: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) {
-            throw new Error("Unauthorized");
-        }
+        const userId = await checkPermission(ctx, "product_categories_create", args.staffToken);
 
         // Check if category already exists for this user
         const existing = await ctx.db
@@ -38,9 +36,25 @@ export const create = mutation({
 
 // List all categories for the current user
 export const list = query({
-    handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) {
+    args: {
+        staffToken: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        // Staff can list if they have view permission
+        // Note: checkPermission returns the business userId, effectively scoping the query
+        let userId;
+        try {
+            userId = await checkPermission(ctx, "product_categories_view", args.staffToken);
+        } catch (e) {
+            // Access check failed - return empty for queries usually or throw? 
+            // Better to return empty list for frontend safety unless it's an explicit error?
+            // Existing pattern was: if (!userId) return [].
+            // But checkPermission throws if permission denied. 
+            // Logic: if Admin not logged in AND Staff check fails -> throw.
+            // If just not logged in (e.g. public site), we want []? 
+            // But this app is authenticated. So throwing is correct if they SHOULD be logged in. 
+            // If checkPermission doesn't find ANY header, it throws "Please log in".
+            // That's fine.
             return [];
         }
 
@@ -58,12 +72,10 @@ export const update = mutation({
     args: {
         id: v.id("productcategory"),
         category_name: v.string(),
+        staffToken: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) {
-            throw new Error("Unauthorized");
-        }
+        const userId = await checkPermission(ctx, "product_categories_edit", args.staffToken);
 
         const category = await ctx.db.get(args.id);
         if (!category) {
@@ -88,12 +100,10 @@ export const update = mutation({
 export const remove = mutation({
     args: {
         id: v.id("productcategory"),
+        staffToken: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) {
-            throw new Error("Unauthorized");
-        }
+        const userId = await checkPermission(ctx, "product_categories_delete", args.staffToken);
 
         const category = await ctx.db.get(args.id);
         if (!category) {
